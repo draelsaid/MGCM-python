@@ -8,6 +8,7 @@ import numpy as np
 import pylab as py
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
+import datetime
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mars_time import MarsTime
@@ -52,7 +53,7 @@ dqsseda, dqssedb   = {}, {}
 dqsdeva, dqsdevb   = {}, {}
 
 # Grab topography from surface.nc or mola32.nc file
-ml = netcdf.netcdf_file('/padata/mars/users/aes442/mgcm_data/surface.nc','r')
+ml = netcdf.netcdf_file('/padata/alpha/users/aes442/datafile/surface.nc','r')
 
 mola = {}
 
@@ -61,7 +62,7 @@ mola[1] = ml.variables['longitude'][:]
 mola[2] = ml.variables['zMOL'][:]
 
 # Import data from Luca's TES dust files for comparison
-a = netcdf.netcdf_file('/padata/mars/users/aes442/mgcm_data/dust_MY28.nc','r')
+a = netcdf.netcdf_file('/padata/alpha/users/aes442/datafile/dust_MY28.nc','r')
 
 d_lat_s = a.variables['latitude'][:]
 d_lon_s = a.variables['longitude'][:]
@@ -71,20 +72,29 @@ d_d   = a.variables['dustop'][:]
 d_lat = np.linspace(-90,90,d_lat_s.shape[0])
 d_lon = np.linspace(-180,180,d_lon_s.shape[0])
 
-# Number of months in comparison (always add 1 because of Python indexing)
-Months = 2   # No. of months
-amth = 1     # Actual month 
+# Number of files in run
+files = 31
 
 # This loop assigns the data in both directories to variables here. This is done for each month. The result is a dictionary of dictionaries. One dictionary containing a dictionary for every month.
-for i in xrange(1,Months):
- mgcm = "MGCM_v5-1"
- rundira = "a_ds8"
- rundirb = "a_ref4"
- month = ("m%s" % (amth)) # CHANGE
- filename = "diagfi.nc"
+
+f_sols = ["06", "07", "08", "09", "10"]
+
+files = 6
+f_time = {}
+f_time[0] = datetime.datetime(3,33,0)
+for i in xrange(1,files+1):
+ f_time[i] = f_time[i-1] + datetime.timedelta(hours=3,minutes=56)
+
+for i in xrange(sols):
+ for j in xrange(time):
+ mgcm = "LMD_MMGCM"
+ rundira = "a_ref_new"
+ rundirb = "a_ds8"
+ filename = "wrfout_d01_2024-01-"
+ f_sol = f_sols[i]
  
- a = netcdf.netcdf_file("/padata/alpha/users/aes442/RUNS/R-%s/%s/%s/%s" % (mgcm,rundira,month,filename),'r')
- b = netcdf.netcdf_file("/padata/alpha/users/aes442/RUNS/R-%s/%s/%s/%s" % (mgcm,rundirb,month,filename),'r')
+ a = netcdf.netcdf_file("/padata/alpha/users/aes442/mars_gcms/RUNS/R-%s/%s/%s/%s" % (mgcm,rundira,filename),'r')
+ b = netcdf.netcdf_file("/padata/alpha/users/aes442/mars_gcms/RUNS/R-%s/%s/%s/%s" % (mgcm,rundirb,filename),'r')
  
  lat     = a.variables['lat'][:]
  lon     = a.variables['lon'][:]
@@ -517,7 +527,7 @@ cb.set_label('%s' % (cb_label), fontsize=16)                    # colorbar label
 #cb.set_label('%s' % (cb_label), fontsize=16)                    # colorbar label
 
 plt.savefig("%sCDOD_latvsLs_dsrunvsrefrun.png" % (fpath), bbox_inches='tight') 
-
+exit()
 ## Temperature PLOT
 temp_t = np.matrix.transpose(temp_avg_t)
 temp_t = temp_t[:,l_1:l_2]
@@ -803,43 +813,43 @@ wind[0] = u_diff
 wind[1] = v_diff 
 
 ## Dust storm 1 Time series dustq (mmr) (time, lat, lon)
-plt_timeseries(dustq_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 2,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust MMR difference / kg / kg', int_Ls, '%sDustqdiff_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(dustq_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust MMR difference / kg / kg', int_Ls, '%sDustqdiff_latlon_tseries_ds1.png' % (fpath), mola)
 
 ## Dust storm time series temp (time,lat,lon)
-#plt_timeseries(temp_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Temperature difference / K', int_Ls, '%stempdiff_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(temp_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Temperature difference / K', int_Ls, '%stempdiff_latlon_tseries_ds1.png' % (fpath), mola)
 ## Dust storm time series surftemp (time,laplt_timeseries(dustq_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust MMR difference / kg / kg', int_Ls, '%sDustqdiff_latlon_tseries_ds1.png' % (fpath), mola)t,lon)
-#plt_timeseries(tsurf_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Surface temperature difference / K', int_Ls, '%ssurftempdiff_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(tsurf_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Surface temperature difference / K', int_Ls, '%ssurftempdiff_latlon_tseries_ds1.png' % (fpath), mola)
 ## Dust storm time series pressure (time,lat,lon)
-#plt_timeseries(rho_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Atmospheric density difference / kg / $m^3$', int_Ls, '%sdensdiff_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(rho_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Atmospheric density difference / kg / $m^3$', int_Ls, '%sdensdiff_latlon_tseries_ds1.png' % (fpath), mola)
 ## 
-#plt_timeseries(pres_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Atmospheric pressure difference / Pa', int_Ls, '%spresdiff_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(pres_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Atmospheric pressure difference / Pa', int_Ls, '%spresdiff_latlon_tseries_ds1.png' % (fpath), mola)
 ## 
-#plt_timeseries(ps_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Surface pressure difference / Pa', int_Ls, '%ssurfpresdiff_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(ps_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Surface pressure difference / Pa', int_Ls, '%ssurfpresdiff_latlon_tseries_ds1.png' % (fpath), mola)
 ## 
-#plt_timeseries(u_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Zonal wind velocity / m / s', int_Ls, '%sudiff_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(u_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Zonal wind velocity / m / s', int_Ls, '%sudiff_latlon_tseries_ds1.png' % (fpath), mola)
 ## fluxes
-#ftnet_diff = ftsw_diff + ftlw_diff
-#fsnet_diff = fssw_diff + fslw_diff
+ftnet_diff = ftsw_diff + ftlw_diff
+fsnet_diff = fssw_diff + fslw_diff
 
-#plt_timeseries(ftnet_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Net flux at top difference / W / $m^2$', int_Ls, '%snettop_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(fsnet_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Net flux at surface difference / W / $m^2$', int_Ls, '%snetsurf_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(ftnet_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Net flux at top difference / W / $m^2$', int_Ls, '%snettop_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(fsnet_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Net flux at surface difference / W / $m^2$', int_Ls, '%snetsurf_latlon_tseries_ds1.png' % (fpath), mola)
 
-#plt_timeseries(ftlw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Outgoing flux at top (LW) difference / W / $m^2$', int_Ls, '%sftlw_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(ftsw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Outgoing flux at top (SW) difference / W / $m^2$', int_Ls, '%sftsw_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(fslw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Incident flux at surface (LW) difference / W / $m^2$', int_Ls, '%sfslw_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(fssw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Incident flux at surface (SW) difference / W / $m^2$', int_Ls, '%sfssw_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(ftlw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Outgoing flux at top (LW) difference / W / $m^2$', int_Ls, '%sftlw_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(ftsw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Outgoing flux at top (SW) difference / W / $m^2$', int_Ls, '%sftsw_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(fslw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Incident flux at surface (LW) difference / W / $m^2$', int_Ls, '%sfslw_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(fssw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Incident flux at surface (SW) difference / W / $m^2$', int_Ls, '%sfssw_latlon_tseries_ds1.png' % (fpath), mola)
 
 ## Dust lifting and sedimentation rates (changed from kg / $m^2$ s to kg / $m^2$ hr)
-#plt_timeseries(dqssed_diff[l_1:l_2,:,:]*(88800/24.), lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust sedimentation difference / kg / $m^2$ hr', int_Ls, '%sdqssed_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(dqsdev_diff[l_1:l_2,:,:]*(88800/24.), lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust devil lifting amount difference / kg / $m^2$ hr', int_Ls, '%sdqsdev_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(dqssed_diff[l_1:l_2,:,:]*(88800/24.), lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust sedimentation difference / kg / $m^2$ hr', int_Ls, '%sdqssed_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(dqsdev_diff[l_1:l_2,:,:]*(88800/24.), lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust devil lifting amount difference / kg / $m^2$ hr', int_Ls, '%sdqsdev_latlon_tseries_ds1.png' % (fpath), mola)
 
 alt_t = alt # Height of 20.9km
 dustq_diff_altlon = dustqa[1][l_1:l_2,:,8,:] - dustqb[1][l_1:l_2,:,8,:]
 temp_diff_altlon = tempa[1][l_1:l_2,:,8,:] - tempb[1][l_1:l_2,:,8,:]
 
-#plt_timeseries(temp_diff_altlon, lon_t, alt_t, Ls, 4,4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Temperature difference / K', int_Ls, '%stemp_altlon_tseries_ds1.png' % (fpath))
+plt_timeseries(temp_diff_altlon, lon_t, alt_t, Ls, 4,4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Temperature difference / K', int_Ls, '%stemp_altlon_tseries_ds1.png' % (fpath))
 
-plt_timeseries(dustq_diff_altlon, lon_t, alt_t, Ls, 2,5, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Dust MMR difference / kg / kg', int_Ls, '%sdustq_altlon_tseries_ds1.png' % (fpath))
+plt_timeseries(dustq_diff_altlon, lon_t, alt_t, Ls, 4,4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Dust MMR difference / kg / kg', int_Ls, '%sdustq_altlon_tseries_ds1.png' % (fpath))
 
 plt.close('all')
 #fix trigger to change from contour to pcolormesh
