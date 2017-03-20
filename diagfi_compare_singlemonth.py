@@ -73,12 +73,12 @@ d_lon = np.linspace(-180,180,d_lon_s.shape[0])
 
 # Number of months in comparison (always add 1 because of Python indexing)
 Months = 2   # No. of months
-amth = 1     # Actual month 
+amth = 10     # Actual month 
 
 # This loop assigns the data in both directories to variables here. This is done for each month. The result is a dictionary of dictionaries. One dictionary containing a dictionary for every month.
 for i in xrange(1,Months):
  mgcm = "MGCM_v5-1"
- rundira = "a_ds8"
+ rundira = "new_ds_MarMITE"
  rundirb = "a_ref4"
  month = ("m%s" % (amth)) # CHANGE
  filename = "diagfi.nc"
@@ -411,14 +411,14 @@ for j in xrange(0,lat.shape[0],1):
 ## Plot settings (MUST CHANGE FROM MONTH TO MONTH)
 ######################################################################################
 # Which Ls do you want to focus on?
-Ls_ee= 3.8
-Ls_e = 6.4
+Ls_ee= 273.4
+Ls_e = 275.2
 l_1 = np.where(Ls - Ls_ee > 0.001)[0][0]
 l_2 = np.where(Ls - Ls_e > 0.001)[0][0]
 Ls = Ls[l_1:l_2]
 n = l_2 - l_1
 
-c = np.matrix('4.01 5')#('0.5 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
+c = np.matrix('273.8 -52.5')#('0.5 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
 
 # Save destination
 
@@ -781,10 +781,10 @@ plt.close('all')
 
 ### Time series plots
 # settings
-s_l = [-2.05, -6.12, 242.7]  # landing site marking on plot (actually for 244.7, Ls is messed up)
-ticky_latlon = [60,10,30,10]      # tick settings [xmajor,xminor,ymajor,yminor] ticks
+s_l = [-2.05, -6.12, 242.7]   # landing site marking on plot (actually for 244.7, Ls is messed up)
+ticky_latlon = [60,10,30,10]  # tick settings [xmajor,xminor,ymajor,yminor] ticks
 ticky_latalt = [60,10,20,10]
-int_Ls = int(np.ceil(Ls.shape[0]/(9*Months)))
+int_Ls = int(np.ceil(Ls.shape[0]/(12*Months)))
 
 # Dust particle size contours
 rd_ds1 = {}
@@ -803,7 +803,7 @@ wind[0] = u_diff
 wind[1] = v_diff 
 
 ## Dust storm 1 Time series dustq (mmr) (time, lat, lon)
-plt_timeseries(dustq_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 2,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust MMR difference / kg / kg', int_Ls, '%sDustqdiff_latlon_tseries_ds1.png' % (fpath), mola)
+plt_timeseries(dustq_diff[l_1:,:,:], lon_t, lat_t, Ls_m[1][l_1:], 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust MMR difference / kg / kg', 3, '%sDustqdiff_latlon_tseries_ds1.png' % (fpath), mola)
 
 ## Dust storm time series temp (time,lat,lon)
 #plt_timeseries(temp_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Temperature difference / K', int_Ls, '%stempdiff_latlon_tseries_ds1.png' % (fpath), mola)
@@ -834,12 +834,12 @@ plt_timeseries(dustq_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 2,4, ticky_latlon, 'Lo
 #plt_timeseries(dqsdev_diff[l_1:l_2,:,:]*(88800/24.), lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust devil lifting amount difference / kg / $m^2$ hr', int_Ls, '%sdqsdev_latlon_tseries_ds1.png' % (fpath), mola)
 
 alt_t = alt # Height of 20.9km
-dustq_diff_altlon = dustqa[1][l_1:l_2,:,8,:] - dustqb[1][l_1:l_2,:,8,:]
-temp_diff_altlon = tempa[1][l_1:l_2,:,8,:] - tempb[1][l_1:l_2,:,8,:]
+dustq_diff_altlon = dustqa[1][l_1:,:,26,:] - dustqb[1][l_1:,:,26,:]
+temp_diff_altlon = tempa[1][l_1:,:,26,:] - tempb[1][l_1:,:,26,:]
 
 #plt_timeseries(temp_diff_altlon, lon_t, alt_t, Ls, 4,4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Temperature difference / K', int_Ls, '%stemp_altlon_tseries_ds1.png' % (fpath))
 
-plt_timeseries(dustq_diff_altlon, lon_t, alt_t, Ls, 2,5, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Dust MMR difference / kg / kg', int_Ls, '%sdustq_altlon_tseries_ds1.png' % (fpath))
+plt_timeseries(dustq_diff_altlon, lon_t, alt_t, Ls_m[1][l_1:], 4, 4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Dust MMR difference / kg / kg', 3, '%sdustq_altlon_tseries_ds1.png' % (fpath))
 
 plt.close('all')
 #fix trigger to change from contour to pcolormesh

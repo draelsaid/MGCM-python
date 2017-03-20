@@ -8,11 +8,6 @@ def plt_timeseries(data, x, y, z, rows, cols, ticks, xlabel, ylabel, sp_titles, 
     f, axarr = plt.subplots(rows, cols, sharex=True, sharey=True, figsize=(12,12), dpi=200)
     #plt.setp(axarr.flat, aspect=1.0, adjustable='box-forced')
     
-# Assign axis
-    x = x
-    y = y
-    z = z
-    
 # Assign labels
     xlabel = xlabel
     ylabel = ylabel
@@ -30,13 +25,14 @@ def plt_timeseries(data, x, y, z, rows, cols, ticks, xlabel, ylabel, sp_titles, 
     major_ticksy = np.arange(np.min(y),np.max(y)+i_mjy, i_mjy)                                         
     minor_ticksy = np.arange(np.min(y),np.max(y)+i_mny, i_mny)
 
-# Subplots   
+# Subplots
     m=0
     for i in xrange(rows):
      for j in xrange(cols):
+
       ax = axarr[i,j].pcolormesh(x, y, data[m*zint,:,:], cmap='RdBu_r', norm=MidPointNorm(midpoint=0.))
       axarr[i,j].axis('tight') 
-      axarr[i,j].set_title('%s %0.1f' % (sp_titles,m*zint), fontsize=10)
+      axarr[i,j].set_title('%s %0.1f' % (sp_titles, z[m*zint]), fontsize=10)
       axarr[i,j].set_xticks(major_ticksx)
       axarr[i,j].set_yticks(major_ticksy)   
       axarr[i,j].set_xticks(minor_ticksx, minor=True)                                      
@@ -66,5 +62,4 @@ def plt_timeseries(data, x, y, z, rows, cols, ticks, xlabel, ylabel, sp_titles, 
      cb = f.colorbar(ax, cax=cbar_ax, format='%.0f', extend='both')
      cb.set_label('%s' % (cb_label), fontsize=16) # colorbar label     
      
-
-    plt.savefig("%s" % (filename), bbox_inches='tight')
+    plt.savefig("%s" % (filename), bbox_inches='tight', dpi=200)
