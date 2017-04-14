@@ -73,13 +73,13 @@ d_lon = np.linspace(-180,180,d_lon_s.shape[0])
 
 # Number of months in comparison (always add 1 because of Python indexing)
 Months = 2   # No. of months
-amth = 10     # Actual month 
+amth = 30     # Actual month 
 
 # This loop assigns the data in both directories to variables here. This is done for each month. The result is a dictionary of dictionaries. One dictionary containing a dictionary for every month.
 for i in xrange(1,Months):
  mgcm = "MGCM_v5-1"
- rundira = "new_ds_MarMITE"
- rundirb = "a_ref4"
+ rundira = "new_ds"
+ rundirb = "new_ref"
  month = ("m%s" % (amth)) # CHANGE
  filename = "diagfi.nc"
  
@@ -145,36 +145,6 @@ n = 0
 for i in xrange(1,len(psa)+1,1): # len(psa) gives the number of months
  n = n + len(dustqa[i])          # len(dustqa[i]) gives the number of time steps in each month.
 print ("Total time steps: %i" % (n))
-
-# Geopotential
-#phia, phib = {}, {}
-
-#Rmars = 191.188888
-#gmars = 3.711
-
-#sigmahalf = np.sqrt(sigma[0,-2] * sigma[-1,-1])
-
-#phia = b.variables['temp'][:]
-#phia = phia*0
-#for k in xrange(tempa[1].shape[0]):
-# for i in xrange(tempa[1].shape[1]-1):
-#  for j in xrange(tempa[1].shape[2]):
-#   for l in xrange(tempa[1].shape[3]):
-#    if (i==0):
-#     phia[k,i+1,j,l] = Rmars*tempa[1][k,i,j,l]*(sigmahalf-play(n,1))/(.5d0*(plev(n,1)+play(n,1)))
-#    phia[k,i+1,j,l] = (phia[k,i,j,l] + Rmars*(tempa[1][k,i,j,l] + tempa[1][k,i+1,j,l])*(presa[1][k,i,j,l] - presa[1][k,i+1,j,l])/(presa[1][k,i,j,l] + presa[1][k,i+1,j,l])) / gmars
-
-### Create new time dimensions
-
-## Sols vector
-#mth_s = [61, 66, 66, 65, 60, 54, 50, 46, 47, 47, 51, 46] # Sols per Mars month
-#sol_s = 0
-#for i in xrange(0,Months-1):
-# sol_s = sol_s + mth_s[i]
-#t = np.linspace(1,sol_s,n)
-
-#wd = 12 # writediagfi interval in runscript
-#t = np.arange(1,669,float(1)/wd) # Create new time dimension variable 
 
 ## Ls vector
 Ls_s = (Months-1)*30 # Number of solar longitudes for time vector for comparison
@@ -411,14 +381,14 @@ for j in xrange(0,lat.shape[0],1):
 ## Plot settings (MUST CHANGE FROM MONTH TO MONTH)
 ######################################################################################
 # Which Ls do you want to focus on?
-Ls_ee= 273.4
-Ls_e = 275.2
+Ls_ee= 150.5
+Ls_e = 151.7
 l_1 = np.where(Ls - Ls_ee > 0.001)[0][0]
 l_2 = np.where(Ls - Ls_e > 0.001)[0][0]
 Ls = Ls[l_1:l_2]
 n = l_2 - l_1
 
-c = np.matrix('273.8 -52.5')#('0.5 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
+c = np.matrix('150.7 45')#('0.5 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
 
 # Save destination
 
@@ -518,6 +488,71 @@ cb.set_label('%s' % (cb_label), fontsize=16)                    # colorbar label
 
 plt.savefig("%sCDOD_latvsLs_dsrunvsrefrun.png" % (fpath), bbox_inches='tight') 
 
+## TEMP/WIND/TOPG map
+
+# DATA
+day = 1
+hr = 96 # this is actually the tstep (t=96 is storm start)
+alt = 0
+
+# variable[day][hour, elevation, lat, lon]
+ut = ua[day][hr,alt,:,:] - ub[day][hr,alt,:,:]
+vt = va[day][hr,alt,:,:] - vb[day][hr,alt,:,:]
+
+#data = tempa[day][hr,alt,:,:] - tempb[day][hr,alt,:,:]
+data = tsurfa[day][hr,:,:] - tsurfb[day][hr,:,:]
+data2= presa[day][hr,:,:] - presb[day][hr,:,:]
+
+# Longitude
+major_ticksx = np.arange(np.floor(lon_t[0]), np.ceil(lon_t[-1]), 30)
+minor_ticksx = np.arange(np.floor(lon_t[0]), np.ceil(lon_t[-1]), 10)
+
+# Latitude
+major_ticksy = np.arange(np.floor(lat_t[-1]), np.ceil(lat_t[0]), 30)
+minor_ticksy = np.arange(np.floor(lat_t[-1]), np.ceil(lat_t[0]), 10)
+
+## PLOT temperature/winds/topography
+f, axarr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,10), dpi=100)
+x = lon_t
+y = lat_t
+
+xlabel = 'Longitude / degrees'
+ylabel = 'Latitude / degrees'
+cblabel= 'Temperature difference / K'
+plt.xlabel(xlabel, fontsize=14, labelpad=10)
+plt.ylabel(ylabel, fontsize=14, labelpad=10)
+
+# Main plot
+ax = axarr.pcolormesh(x, y, data, cmap='RdBu_r', norm=MidPointNorm(midpoint=0.))
+
+# Secondary plot
+ax2 = axarr.quiver(x, y, ut, vt, scale=2**2, units='y', width=0.1)
+aq = axarr.quiverkey(ax2, 0.815, 0.9, 1, r'$1 \frac{m}{s}$', labelpos='E', coordinates='figure')
+
+# Topography
+lvls = [-5,0,5,10,15]
+ax3 = axarr.contour(mola[1], mola[0], mola[2], lvls, colors='k')
+ 
+# Ticks
+axarr.set_xticks(major_ticksx)                                                       
+axarr.set_xticks(minor_ticksx, minor=True)                                       
+axarr.set_yticks(major_ticksy)                                                       
+axarr.set_yticks(minor_ticksy, minor=True)
+axarr.tick_params(axis='both', labelsize=12, pad=10)
+
+axarr.axis('tight')
+
+# Colour bar
+f.subplots_adjust(right=0.8)
+cbar_ax = f.add_axes([0.85, 0.1, 0.04, 0.8])    # [h_place, v_place, h_size, v_size]
+cb = f.colorbar(ax, cax=cbar_ax, format='%.1f', extend='both') # double-edged colorbar
+cb.set_label('%s' % (cblabel), fontsize=16)                    # colorbar label
+
+plt.axis('tight')
+plt.savefig("%stemp_uvwind_mola_latvslon.png" % (fpath), bbox_inches='tight')
+#plt.close('all')
+exit()
+
 ## Temperature PLOT
 temp_t = np.matrix.transpose(temp_avg_t)
 temp_t = temp_t[:,l_1:l_2]
@@ -583,7 +618,7 @@ axarr[1].set_title('(b)', fontsize=18)
 # Colorbar creation and placement
 f.subplots_adjust(right=0.8)
 cbar_ax = f.add_axes([0.85, 0.54, 0.04, 0.36])  # [h_placement, v_placement, h_size, v_size]
-cb = f.colorbar(ax1, cax=cbar_ax, format='%.0f', extend='both') # double-edged colorbar
+cb = f.colorbar(ax1, cax=cbar_ax, format='%.1f', extend='both') # double-edged colorbar
 cb.set_label('%s' % (cb_label), fontsize=14)                    # colorbar label
 
 cbar_ax2 = f.add_axes([0.85, 0.1, 0.04, 0.36])  # [h_placement, v_placement, h_size, v_size]
@@ -633,7 +668,7 @@ cb_label = 'Radiative flux difference / W / $m^2$'
 f.text(0.5, 0.04, '%s' % (xlabel), fontsize=18, ha='center')
 f.text(0.06, 0.5, '%s' % (ylabel), fontsize=18, va='center', rotation='vertical')
  
-ax1 = axarr[0,0].pcolormesh(x, y, fslw_t, norm=MidPointNorm(midpoint=0.), cmap='RdBu_r', vmax=10,vmin=-5)# vmin=np.min((np.min(fslw_t),np.min(ftlw_t),np.min(fssw_t),np.min(ftsw_t))), vmax=np.max((np.max(fslw_t),np.max(ftlw_t),np.max(fssw_t),np.max(ftsw_t))))
+ax1 = axarr[0,0].pcolormesh(x, y, fslw_t, norm=MidPointNorm(midpoint=0.), cmap='RdBu_r')
 axarr[0,0].axis('tight')
 axarr[0,0].plot(c[0,0],c[0,1],'o',color='y',markersize=10)
 axarr[0,0].set_xticks(major_ticksx)
@@ -658,7 +693,7 @@ cax2 = dv2.append_axes("right",size="5%",pad=0.05)
 cb2 = f.colorbar(ax2,cax=cax2, format='%.1f', extend='both')
 cb2.set_label('%s' % (cb_label), fontsize=10)
 
-ax3 = axarr[1,0].pcolormesh(x, y, fssw_t, norm=MidPointNorm(midpoint=0.), cmap='RdBu_r',vmax=5,vmin=-30)
+ax3 = axarr[1,0].pcolormesh(x, y, fssw_t, norm=MidPointNorm(midpoint=0.), cmap='RdBu_r')
 axarr[1,0].plot(c[0,0],c[0,1],'o',color='y',markersize=10)
 axarr[1,0].set_title('Incident flux at surface (SW) (c)', fontsize=10)
 axarr[1,0].tick_params(axis='both', labelsize=10)
@@ -805,43 +840,39 @@ wind[1] = v_diff
 ## Dust storm 1 Time series dustq (mmr) (time, lat, lon)
 plt_timeseries(dustq_diff[l_1:,:,:], lon_t, lat_t, Ls_m[1][l_1:], 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust MMR difference / kg / kg', 3, '%sDustqdiff_latlon_tseries_ds1.png' % (fpath), mola)
 
-## Dust storm time series temp (time,lat,lon)
-#plt_timeseries(temp_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Temperature difference / K', int_Ls, '%stempdiff_latlon_tseries_ds1.png' % (fpath), mola)
-## Dust storm time series surftemp (time,laplt_timeseries(dustq_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust MMR difference / kg / kg', int_Ls, '%sDustqdiff_latlon_tseries_ds1.png' % (fpath), mola)t,lon)
-#plt_timeseries(tsurf_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Surface temperature difference / K', int_Ls, '%ssurftempdiff_latlon_tseries_ds1.png' % (fpath), mola)
-## Dust storm time series pressure (time,lat,lon)
-#plt_timeseries(rho_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Atmospheric density difference / kg / $m^3$', int_Ls, '%sdensdiff_latlon_tseries_ds1.png' % (fpath), mola)
-## 
-#plt_timeseries(pres_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Atmospheric pressure difference / Pa', int_Ls, '%spresdiff_latlon_tseries_ds1.png' % (fpath), mola)
-## 
-#plt_timeseries(ps_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Surface pressure difference / Pa', int_Ls, '%ssurfpresdiff_latlon_tseries_ds1.png' % (fpath), mola)
-## 
-#plt_timeseries(u_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Zonal wind velocity / m / s', int_Ls, '%sudiff_latlon_tseries_ds1.png' % (fpath), mola)
-## fluxes
-#ftnet_diff = ftsw_diff + ftlw_diff
-#fsnet_diff = fssw_diff + fslw_diff
-
-#plt_timeseries(ftnet_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Net flux at top difference / W / $m^2$', int_Ls, '%snettop_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(fsnet_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Net flux at surface difference / W / $m^2$', int_Ls, '%snetsurf_latlon_tseries_ds1.png' % (fpath), mola)
-
-#plt_timeseries(ftlw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Outgoing flux at top (LW) difference / W / $m^2$', int_Ls, '%sftlw_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(ftsw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Outgoing flux at top (SW) difference / W / $m^2$', int_Ls, '%sftsw_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(fslw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Incident flux at surface (LW) difference / W / $m^2$', int_Ls, '%sfslw_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(fssw_diff[l_1:l_2,:,:], lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Incident flux at surface (SW) difference / W / $m^2$', int_Ls, '%sfssw_latlon_tseries_ds1.png' % (fpath), mola)
-
-## Dust lifting and sedimentation rates (changed from kg / $m^2$ s to kg / $m^2$ hr)
-#plt_timeseries(dqssed_diff[l_1:l_2,:,:]*(88800/24.), lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust sedimentation difference / kg / $m^2$ hr', int_Ls, '%sdqssed_latlon_tseries_ds1.png' % (fpath), mola)
-#plt_timeseries(dqsdev_diff[l_1:l_2,:,:]*(88800/24.), lon_t, lat_t, Ls, 4,4, ticky_latlon, 'Longitude / degrees', 'Latitude / degrees', 'Ls: ', 'Dust devil lifting amount difference / kg / $m^2$ hr', int_Ls, '%sdqsdev_latlon_tseries_ds1.png' % (fpath), mola)
-
 alt_t = alt # Height of 20.9km
-dustq_diff_altlon = dustqa[1][l_1:,:,26,:] - dustqb[1][l_1:,:,26,:]
-temp_diff_altlon = tempa[1][l_1:,:,26,:] - tempb[1][l_1:,:,26,:]
+latll = 26
+dustq_diff_altlon = dustqa[1][l_1:,:,latll,:] - dustqb[1][l_1:,:,latll,:]
+temp_diff_altlon = tempa[1][l_1:,:,latll,:] - tempb[1][l_1:,:,latll,:]
 
-#plt_timeseries(temp_diff_altlon, lon_t, alt_t, Ls, 4,4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Temperature difference / K', int_Ls, '%stemp_altlon_tseries_ds1.png' % (fpath))
-
+plt_timeseries(temp_diff_altlon, lon_t, alt_t, Ls, 4,4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Temperature difference / K', int_Ls, '%stemp_altlon_tseries_ds1.png' % (fpath))
+a
 plt_timeseries(dustq_diff_altlon, lon_t, alt_t, Ls_m[1][l_1:], 4, 4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Dust MMR difference / kg / kg', 3, '%sdustq_altlon_tseries_ds1.png' % (fpath))
 
+
+### Relative error (Impact) calculations
+
+var_da = [tempa, presa, ua, va, rhoa, dustqa, fluxsurflwa, fluxsurfswa, fluxtoplwa, fluxtopswa]
+var_db = [tempb, presb, ub, vb, rhob, dustqb, fluxsurflwb, fluxsurfswb, fluxtoplwb, fluxtopswb]
+re_err = {}
+for n in len(var_da):
+ t_a = l_2 - l_1
+ re = np.zeros(t_a)
+
+ data_a = var_da[n]
+ data_b = var_db[n]
+
+ m=0
+ for i in xrange(l_1,l_2):
+  aa = data_a[i,:al,7:9,17:19].flatten() - data_b[i,:al,7:9,17:19].flatten()
+  a_ref = data_b[i,:al,7:9,17:19].flatten()
+  re[n][m] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
+ 
+  m=m+1
+
+ re_err[n] = sum(re[n]) / re[n].shape[0]
+
+
+
 plt.close('all')
-#fix trigger to change from contour to pcolormesh
-#fix trigger to label plots properly
-#fix trigger to change the magnitude of units in colorbar
+

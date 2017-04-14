@@ -60,6 +60,7 @@ lwdwa, lwdwb = {}, {}
 swupa, swupb = {}, {}
 lwupa, lwupb = {}, {}
 hfxuwa, hfxuwb={}, {}
+taua, taub = {}, {}
 
 # Number of files in run
 
@@ -71,12 +72,12 @@ hfxuwa, hfxuwb={}, {}
 #                   3D: (Time, south_north, west_east)
 
 m=0
-for i in xrange(3,8):
+for i in xrange(2,3):
  m=m+1
  
  mgcm = "LMD_MMGCM"
- rundira = "NEW_TEST_DS/storm"
- rundirb = "NEW_TEST_DS/ref"
+ rundira = "3_ds_callphys"
+ rundirb = "3_ref_callphys"
  filename = "wrfout_d01_2024-01-0%i_02:00:00" % (i)
  
  a = netcdf.netcdf_file("/padata/mars/users/aes442/RUNS/R-%s/%s/%s" % (mgcm,rundira,filename),'r')
@@ -102,9 +103,10 @@ for i in xrange(3,8):
   
  swdwa[m]  = a.variables['SWDOWNZ'][:]
  lwdwa[m]  = a.variables['LWDOWNZ'][:]
-# swupa[m]  = a.variables['SWUP'][:]
-# lwupa[m]  = a.variables['LWUP'][:]
+ swupa[m]  = a.variables['SWUP'][:]
+ lwupa[m]  = a.variables['LWUP'][:]
  hfxuwa[m] = a.variables['HFX'][:]
+ taua[m] = a.variables['TAU'][:]
  
 ## b
  dustb[m]  = b.variables['QDUST'][:]
@@ -115,9 +117,10 @@ for i in xrange(3,8):
   
  swdwb[m]  = a.variables['SWDOWNZ'][:]
  lwdwb[m]  = a.variables['LWDOWNZ'][:]
-# swupb[m]  = a.variables['SWUP'][:]
-# lwupb[m]  = a.variables['LWUP'][:]
+ swupb[m]  = a.variables['SWUP'][:]
+ lwupb[m]  = a.variables['LWUP'][:]
  hfxuwb[m] = a.variables['HFX'][:]
+ taub[m] = b.variables['TAU'][:]
 
 # Calculate approximate HEIGHT from geopotential
 alt = np.zeros((phtot[1].shape[1]))
@@ -144,11 +147,24 @@ topg[0] = mola[0][dd2-1:dd1+1] # lat
 topg[1] = mola[1][dd3-1:dd4+1] # lon
 topg[2] = mola[2][dd2-1:dd1+1,dd3-1:dd4+1] # (lat,lon) mola map
 
-# variable[day][hour, elevation, lat, lon]
-ut = ua[5][23,0,0:100,0:100] - ub[5][23,0,0:100,0:100]
-vt = va[5][23,0,0:100,0:100] - vb[5][23,0,0:100,0:100]
+day = 1
+hr = 13
+alt = 0
 
-data = tempa[5][23,0,0:100,0:100] - tempb[5][23,0,0:100,0:100]
+## variable[day][hour, elevation, lat, lon]
+## day average
+
+#ut = ua[day][:,alt,0:100,0:100].sum(axis=0)/ua[day].shape[0] - ub[day][:,alt,0:100,0:100].sum(axis=0)/ub[day].shape[0]
+#vt = va[day][:,alt,0:100,0:100].sum(axis=0)/va[day].shape[0] - vb[day][:,alt,0:100,0:100].sum(axis=0)/vb[day].shape[0]
+
+#data = tempa[day][:,alt,:,:].sum(axis=0)/tempa[day].shape[0] - tempb[day][:,alt,:,:].sum(axis=0)/tempb[day].shape[0]
+#data2= ptota[day][:,alt,:,:].sum(axis=0)/ptota[day].shape[0] - ptotb[day][:,alt,:,:].sum(axis=0)/ptotb[day].shape[0]
+
+ut = ua[day][hr,alt,0:100,0:100] - ub[day][hr,alt,0:100,0:100]
+vt = va[day][hr,alt,0:100,0:100] - vb[day][hr,alt,0:100,0:100]
+
+data = tempa[day][hr,alt,:,:] - tempb[day][hr,alt,:,:]
+data2= ptota[day][hr,alt,:,:] - ptotb[day][hr,alt,:,:]
 
 ## PLOTS
 
@@ -170,16 +186,16 @@ y = xlat
 
 xlabel = 'Longitude / degrees'
 ylabel = 'Latitude / degrees'
-cblabel= 'Temperature / K'
+cblabel= 'Temperature difference / K'
 plt.xlabel(xlabel, fontsize=14, labelpad=10)
 plt.ylabel(ylabel, fontsize=14, labelpad=10)
 
 # Main plot
-ax = axarr.pcolormesh(x, y, data)
+ax = axarr.pcolormesh(x, y, data, cmap='RdBu_r', norm=MidPointNorm(midpoint=0.))
 
 # Secondary plot
 ax2 = axarr.quiver(xlon, xlat, ut, vt, scale=2**2, units='y', width=0.1)
-aq = axarr.quiverkey(ax2, 0.815, 0.9, 8, r'$8 \frac{m}{s}$', labelpos='E', coordinates='figure')
+aq = axarr.quiverkey(ax2, 0.815, 0.9, 1, r'$1 \frac{m}{s}$', labelpos='E', coordinates='figure')
 
 # Topography
 lvls = [-5,0,5,10,15]
@@ -196,27 +212,112 @@ axarr.axis('tight')
 
 # Colour bar
 f.subplots_adjust(right=0.8)
-cbar_ax = f.add_axes([0.85, 0.1, 0.04, 0.8])                    # [h_placement, v_placement, h_size, v_size]
+cbar_ax = f.add_axes([0.85, 0.1, 0.04, 0.8])    # [h_place, v_place, h_size, v_size]
 cb = f.colorbar(ax, cax=cbar_ax, format='%.1f', extend='both') # double-edged colorbar
 cb.set_label('%s' % (cblabel), fontsize=16)                    # colorbar label
 
 plt.axis('tight')
 plt.savefig("%sMMM_temp_uvwind_mola_latvslon.png" % (fpath), bbox_inches='tight')
+#plt.close('all')
+exit()
 
-# Wind quiver plot
-#plt_quiver(xlon, xlat, ut, vt, 'Longitude / degrees', 'Latitude / degrees', 'XXX')
+## PLOT pressure/topography
+f, axarr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(12,12), dpi=100)
+x = xlon
+y = xlat
 
-## PLOT radiative fluxes
+cblabel= 'Pressure difference / Pa'
+plt.xlabel(xlabel, fontsize=14, labelpad=10)
+plt.ylabel(ylabel, fontsize=14, labelpad=10)
+
+# Main plot
+ax = axarr.pcolormesh(x, y, data2, cmap='RdBu_r', norm=MidPointNorm(midpoint=0.))
+
+# Topography
+lvls = [-5,0,5,10,15]
+ax3 = axarr.contour(topg[1], topg[0], topg[2], lvls, colors='k')
+ 
+# Ticks
+axarr.set_xticks(major_ticksx)                                                       
+axarr.set_xticks(minor_ticksx, minor=True)                                       
+axarr.set_yticks(major_ticksy)                                                       
+axarr.set_yticks(minor_ticksy, minor=True)
+axarr.tick_params(axis='both', labelsize=12, pad=10)
+
+axarr.axis('tight')
+
+# Colour bar
+f.subplots_adjust(right=0.8)
+cbar_ax = f.add_axes([0.85, 0.1, 0.04, 0.8])    # [h_place, v_place, h_size, v_size]
+cb = f.colorbar(ax, cax=cbar_ax, format='%.1f', extend='both') # double-edged colorbar
+cb.set_label('%s' % (cblabel), fontsize=16)                    # colorbar label
+
+plt.axis('tight')
+plt.savefig("%sMMM_pressure_latvslon.png" % (fpath), bbox_inches='tight')
+plt.close('all')
+
+
+
+# plot
+f, axarr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(12,12), dpi=100)
+x = xlat
+y = alt[:50]/1000.
+
+# DATA temp alt/lon
+aa = tempa[day][15,:,:,:]
+bb = tempb[day][15,:,:,:]
+
+# time averaging
+#aa = tempa[day].sum(axis=0)/tempa[day].shape[0]
+#bb = tempb[day].sum(axis=0)/tempb[day].shape[0]
+
+# lon averaging
+aa2 = aa.sum(axis=2)/aa.shape[2]
+bb2 = bb.sum(axis=2)/bb.shape[2]
+
+tmp_data = aa2 - bb2
+
+# Labels
+xlabel = 'Latitude / degrees'
+ylabel = 'Altitude / km'
+cb_label = 'Temperature difference / K' 
+f.text(0.5, 0.04, '%s' % (xlabel), fontsize=18, ha='center')
+f.text(0.06, 0.5, '%s' % (ylabel), fontsize=18, va='center', rotation='vertical')
+
+# Altitude
+major_ticksy = np.arange(np.floor(alt[0]), np.ceil(alt[-1]), 10)
+minor_ticksy = np.arange(np.floor(alt[0]), np.ceil(alt[-1]), 5)
+
+# Latitude
+major_ticksx = np.arange(np.floor(xlat[0]), np.ceil(xlat[-1]), 10)
+minor_ticksx = np.arange(np.floor(xlat[0]), np.ceil(xlat[-1]), 5)
+
+ax = axarr.pcolormesh(x, y, tmp_data, cmap='RdBu_r', norm=MidPointNorm(midpoint=0.))
+
+axarr.axis('tight')
+
+# Colour bar
+f.subplots_adjust(right=0.8)
+cbar_ax = f.add_axes([0.85, 0.1, 0.04, 0.8])    # [h_place, v_place, h_size, v_size]
+cb = f.colorbar(ax, cax=cbar_ax, format='%.1f', extend='both') # double-edged colorbar
+cb.set_label('%s' % (cb_label), fontsize=16)                    # colorbar label
+
+#plt.axis('tight')
+plt.savefig("%sMMM_tmp_altvslat.png" % (fpath), bbox_inches='tight')
+plt.close('all')
+
+
+## PLOT radiative fluxes (zonally averaged)
 
 # data
-data1 = hfxuwa[5].sum(axis=2)/hfxuwa[5].shape[2]
-data2 = lwdwa[5].sum(axis=2)/lwdwa[5].shape[2]
-data3 = swdwa[5].sum(axis=2)/swdwa[5].shape[2]
+data1 = hfxuwa[day].sum(axis=2)/hfxuwa[day].shape[2] - hfxuwb[day].sum(axis=2)/hfxuwb[day].shape[2]
+data2 = lwdwa[day].sum(axis=2)/lwdwa[day].shape[2] - lwdwb[day].sum(axis=2)/lwdwb[day].shape[2]
+data3 = swdwa[day].sum(axis=2)/swdwa[day].shape[2] - swdwb[day].sum(axis=2)/swdwb[day].shape[2]
 data1 = data1.T
 data2 = data2.T
 data3 = data3.T
 
-# plot
+# plot 
 f, axarr = plt.subplots(1, 2, sharex=True, sharey=True, figsize=(12,12), dpi=100)
 x = t
 y = xlat
@@ -261,8 +362,9 @@ cb2.set_label('%s' % (cb_label), fontsize=10)
 
 plt.axis('tight')
 plt.savefig("%sMMM_influxes_latvstime.png" % (fpath), bbox_inches='tight')
+plt.close('all')
 
-# Outgoing radiative flux (total)
+# SENSIBLE heat flux
 f, axarr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(12,12), dpi=100)
 x = t
 y = xlat
@@ -273,7 +375,7 @@ axarr.set_xticks(major_ticksx)
 axarr.set_xticks(minor_ticksx, minor=True)                                           
 axarr.set_yticks(major_ticksy)                                                       
 axarr.set_yticks(minor_ticksy, minor=True)
-axarr.set_title('Outgoing heat flux at surface (a)', fontsize=10)
+axarr.set_title('Outgoing sensible heat flux at surface', fontsize=10)
 axarr.tick_params(axis='both', labelsize=10)
 
 dv1 = make_axes_locatable(axarr)
@@ -283,8 +385,16 @@ cb.set_label('%s' % (cb_label), fontsize=10)
 
 plt.axis('tight')
 plt.savefig("%sMMM_outflux_latvstime.png" % (fpath), bbox_inches='tight')
+plt.close('all')
 
 ## Dust storm 1 Time series dustq (mmr) (time, lat, lon)
-plt_timeseries(dusta[1][:,0,0:100,0:100], xlon, xlat, t, 4,6, 'Longitude / degrees', 'Latitude / degrees', 'Hour: ', 'Dust MMR difference / kg / kg', 1, '%sMMM_dustqdiff_latlon_tseries.png' % (fpath), topg)
 
+d_data = dusta[day][:,0,0:100,0:100] - dustb[day][:,0,0:100,0:100]
+tau_data = dusta[day][:,0,0:100,0:100] - dustb[day][:,0,0:100,0:100]
+
+plt_timeseries(d_data, xlon, xlat, t, 4,6, 'Longitude / degrees', 'Latitude / degrees', 'Hour: ', 'Dust MMR difference / kg / kg', 1, '%sMMM_dustqdiff_latlon_tseries.png' % (fpath), topg)
+
+plt_timeseries(d_data, xlon, xlat, t, 4,6, 'Longitude / degrees', 'Latitude / degrees', 'Hour: ', 'Dust MMR difference / kg / kg', 1, '%sMMM_dustqdiff_latlon_tseries.png' % (fpath), topg)
+
+plt.close('all')
 
