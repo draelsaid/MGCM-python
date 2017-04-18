@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from MidPointNorm import *
 
-def plt_timeseries(data, x, y, z, rows, cols, xlabel, ylabel, sp_titles, cb_label, zint, filename, d2_c=0):
+def MMM_plt_tseries(data, x, y, z, rows, cols, xlabel, ylabel, sp_titles, cb_label, zint, filename, d2_c=0):
 
     f, axarr = plt.subplots(rows, cols, sharex=True, sharey=True, figsize=(12,12), dpi=200)
     #plt.setp(axarr.flat, aspect=1.0, adjustable='box-forced')
@@ -26,7 +26,7 @@ def plt_timeseries(data, x, y, z, rows, cols, xlabel, ylabel, sp_titles, cb_labe
     for i in xrange(rows):
      for j in xrange(cols):
 
-      ax = axarr[i,j].pcolormesh(x, y, data[m*zint,:,:])#, cmap='RdBu_r', norm=MidPointNorm(midpoint=0.))
+      ax = axarr[i,j].pcolormesh(x, y, data[m*zint,:,:], cmap='RdBu_r', norm=MidPointNorm(midpoint=0.), vmin=np.min(data))
       axarr[i,j].axis('tight') 
       axarr[i,j].set_title('%s %0.1f' % (sp_titles, z[m*zint]), fontsize=10)
       axarr[i,j].set_xticks(major_ticksx)

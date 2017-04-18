@@ -381,14 +381,14 @@ for j in xrange(0,lat.shape[0],1):
 ## Plot settings (MUST CHANGE FROM MONTH TO MONTH)
 ######################################################################################
 # Which Ls do you want to focus on?
-Ls_ee= 150.5
-Ls_e = 151.7
+Ls_ee= 153.9
+Ls_e = 155.
 l_1 = np.where(Ls - Ls_ee > 0.001)[0][0]
 l_2 = np.where(Ls - Ls_e > 0.001)[0][0]
 Ls = Ls[l_1:l_2]
 n = l_2 - l_1
 
-c = np.matrix('150.7 45')#('0.5 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
+c = np.matrix('154. 0')#('0.5 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
 
 # Save destination
 
@@ -493,13 +493,13 @@ plt.savefig("%sCDOD_latvsLs_dsrunvsrefrun.png" % (fpath), bbox_inches='tight')
 # DATA
 day = 1
 hr = 96 # this is actually the tstep (t=96 is storm start)
-alt = 0
+lvl = 0
 
 # variable[day][hour, elevation, lat, lon]
-ut = ua[day][hr,alt,:,:] - ub[day][hr,alt,:,:]
-vt = va[day][hr,alt,:,:] - vb[day][hr,alt,:,:]
+ut = ua[day][hr,lvl,:,:] - ub[day][hr,lvl,:,:]
+vt = va[day][hr,lvl,:,:] - vb[day][hr,lvl,:,:]
 
-#data = tempa[day][hr,alt,:,:] - tempb[day][hr,alt,:,:]
+#data = tempa[day][hr,lvl,:,:] - tempb[day][hr,lvl,:,:]
 data = tsurfa[day][hr,:,:] - tsurfb[day][hr,:,:]
 data2= presa[day][hr,:,:] - presb[day][hr,:,:]
 
@@ -550,11 +550,10 @@ cb.set_label('%s' % (cblabel), fontsize=16)                    # colorbar label
 
 plt.axis('tight')
 plt.savefig("%stemp_uvwind_mola_latvslon.png" % (fpath), bbox_inches='tight')
-#plt.close('all')
-exit()
+plt.close('all')
 
 ## Temperature PLOT
-temp_t = np.matrix.transpose(temp_avg_t)
+temp_t = tsurf_avg_t.T
 temp_t = temp_t[:,l_1:l_2]
 
 fig = plt.figure(figsize=(10,10), dpi=100)
@@ -855,7 +854,7 @@ plt_timeseries(dustq_diff_altlon, lon_t, alt_t, Ls_m[1][l_1:], 4, 4, ticky_latal
 var_da = [tempa, presa, ua, va, rhoa, dustqa, fluxsurflwa, fluxsurfswa, fluxtoplwa, fluxtopswa]
 var_db = [tempb, presb, ub, vb, rhob, dustqb, fluxsurflwb, fluxsurfswb, fluxtoplwb, fluxtopswb]
 re_err = {}
-for n in len(var_da):
+for n in xrange(1,len(var_da)+1):
  t_a = l_2 - l_1
  re = np.zeros(t_a)
 
@@ -871,8 +870,6 @@ for n in len(var_da):
   m=m+1
 
  re_err[n] = sum(re[n]) / re[n].shape[0]
-
-
 
 plt.close('all')
 
