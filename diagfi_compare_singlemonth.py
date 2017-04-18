@@ -398,7 +398,7 @@ fpath = "/home/physastro/aes442/results/Dustruns/m%i/" % (amth)
 
 ######## TES dust files
 # Zonal averaging
-tau_d_z = d_d.sum(axis=2)/d_d.shape[2] 
+tau_d_z = d_d.sum(axis=2)/d_d.shape[2]
 
 # Time averaging
 nnnn=2
