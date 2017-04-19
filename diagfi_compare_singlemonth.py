@@ -848,28 +848,57 @@ plt_timeseries(temp_diff_altlon, lon_t, alt_t, Ls, 4,4, ticky_latalt, 'Longitude
 a
 plt_timeseries(dustq_diff_altlon, lon_t, alt_t, Ls_m[1][l_1:], 4, 4, ticky_latalt, 'Longitude / degrees', 'Altitude / km', 'Ls: ', 'Dust MMR difference / kg / kg', 3, '%sdustq_altlon_tseries_ds1.png' % (fpath))
 
+plt.close('all')
 
-### Relative error (Impact) calculations
+## IMPACT CALCULATIONS
 
-var_da = [tempa, presa, ua, va, rhoa, dustqa, fluxsurflwa, fluxsurfswa, fluxtoplwa, fluxtopswa]
-var_db = [tempb, presb, ub, vb, rhob, dustqb, fluxsurflwb, fluxsurfswb, fluxtoplwb, fluxtopswb]
+# Target area 
+llat1, llat2  = -22.5, 22.5
+llon1, llon2  = -20., 20.
+lalt1, lalt2  = 0., 8.
+
+# Target time window
+ts1, ts2      = 96, 108
+
+lat_1, lat_2 = np.where(lat - llat2 >= 0.001)[0][-1]+1, np.where(lat - llat1 >= 0.001)[0][-1]+1
+lon_1, lon_2 = np.where(lon - llon1 >= 0.001)[0][0]-1, np.where(lon - llon2 >= 0.001)[0][0]-1
+alt_1, alt_2 = np.where(alt - lalt1 >= 0.001)[0][0], np.where(alt - lalt2 >= 0.001)[0][0]
+
+alt_1 = 0
+
+# Loop to compute impact
 re_err = {}
-for n in xrange(1,len(var_da)+1):
- t_a = l_2 - l_1
- re = np.zeros(t_a)
+re = {}
+day = 1 
 
+var_da = [tempa[1], presa[1], ua[1], va[1], rhoa[1], dustqa[1], dustNa[1], fluxsurflwa[1], fluxsurfswa[1], fluxtoplwa[1], fluxtopswa[1]]
+var_db = [tempb[1], presb[1], ub[1], vb[1], rhob[1], dustqb[1], dustNb[1], fluxsurflwb[1], fluxsurfswb[1], fluxtoplwb[1], fluxtopswb[1]]
+
+re[day] = np.zeros([len(var_da), (ts2-ts1)+1])
+re_err[day] = np.zeros(len(var_da)) 
+ 
+for n in xrange(0, len(var_da)):
  data_a = var_da[n]
  data_b = var_db[n]
 
- m=0
- for i in xrange(l_1,l_2):
-  aa = data_a[i,:al,7:9,17:19].flatten() - data_b[i,:al,7:9,17:19].flatten()
-  a_ref = data_b[i,:al,7:9,17:19].flatten()
-  re[n][m] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
+ if len(data_a.shape)==4:
+
+  m=0
+  for j in xrange(ts1, ts2+1):
+   aa = data_a[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten() - data_b[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten()
+   a_ref = data_b[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten()
+   re[day][n,m] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
+   m=m+1
+   
+ else:
  
-  m=m+1
-
- re_err[n] = sum(re[n]) / re[n].shape[0]
-
-plt.close('all')
+  m=0
+  for j in xrange(ts1, ts2+1):
+   aa = data_a[j,lat_1:lat_2,lon_1:lon_2].flatten() - data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
+   a_ref = data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
+   re[day][n,m] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
+   m=m+1
+   
+ re[day][(np.isnan(re[day])==True)] = 0.
+ re_err[day][n] = sum(re[day][n,:]) / re[day][n,:].shape[0]
 

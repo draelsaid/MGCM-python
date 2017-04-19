@@ -127,8 +127,7 @@ alt = phtot[1][0,:,0,0] / 3.72 - hgt[1][0,0,0]
 
 print "Latitude: %i, (%.2f - %.2f) || Longitude: %i, (%.2f - %.2f) || Model levels: %i => Alt Min:%.3f | Alt Max:%.3f " % (xlat.shape[0],xlat[0],xlat[-1],xlon.shape[0],xlon[0],xlon[-1],alt.shape[0],alt[0],alt[-1])
 
-# Time
-
+# Path
 fpath = "/home/physastro/aes442/results/MMM_dust/"
 
 #########################################################################################
@@ -520,48 +519,44 @@ for i in xrange(1,len(hgt)+1):
 # Target area 
 llat1, llat2 = -20., 20.
 llon1, llon2  = -20., 20.
-lalt1, lalt2  = 0., 8.*1000
+lalt1, lalt2  = 0., 8.*1000.
 
 lat_1, lat_2 = np.where(xlat - llat1 >= 0.001)[0][0], np.where(xlat - llat2 >= 0.001)[0][0]
 lon_1, lon_2 = np.where(xlon - llon1 >= 0.001)[0][0], np.where(xlon - llon2 >= 0.001)[0][0]
 alt_1, alt_2 = np.where(alt - lalt1 >= 0.001)[0][0], np.where(alt - lalt2 >= 0.001)[0][0]
 
 alt_1 = 0
+
 # Loop to compute impact
-for i in xrange(1, len(psa)+1):
- day = i
- 
- var_da = [tempa[day], psa[day], ua[day], va[day], dusta[day], swdwa[day], swupa[day], lwdwa[day], lwupa[day]]
- var_db = [tempb[day], psb[day], ub[day], vb[day], dustb[day], swdwb[day], swupb[day], lwdwb[day], lwupb[day]]
- 
- re_err = {}
- re = {}
+re_err = {}
+re = {}
+
+for day in xrange(1, len(psa)+1):
+ var_da = [tempa[day], psa[day], ua[day][:,:,:100,:100], va[day][:,:,:100,:100], dusta[day], swdwa[day], swupa[day], lwdwa[day], lwupa[day]]
+ var_db = [tempb[day], psb[day], ub[day][:,:,:100,:100], vb[day][:,:,:100,:100], dustb[day], swdwb[day], swupb[day], lwdwb[day], lwupb[day]]
+
+ re[day] = np.zeros([len(var_da),t.shape[0]])
+ re_err[day] = np.zeros(len(var_da)) 
  
  for n in xrange(0, len(var_da)):
-#  re[n]=np.zeros([t.shape[0]])
-  
   data_a = var_da[n]
   data_b = var_db[n]
-  
+
   if len(data_a.shape)==4:
-  
-   m=0
-   for j in xrange(0, t.shape[0]):
+   for j in xrange(0, data_a.shape[0]):
     aa = data_a[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten() - data_b[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten()
     a_ref = data_b[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten()
-    re[n,j] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
- 
-    m=m+1
-  
+    re[day][n,j] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
   else:
-  
-   m=0
-   for j in xrange(0, t.shape[0]):
+   for j in xrange(0, data_a.shape[0]):
     aa = data_a[j,lat_1:lat_2,lon_1:lon_2].flatten() - data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
     a_ref = data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
-    re[n,j] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
- 
-    m=m+1
-    
-  re_err[n,day] = sum(re[n]) / re[n].shape[0]
+    re[day][n,j] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
+
+
+  re[day][(np.isnan(re[day])==True)] = 0.
+  re_err[day][n] = sum(re[day][n,:]) / re[day][n,:].shape[0]
+
+
+  
 
