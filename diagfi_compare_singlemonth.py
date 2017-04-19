@@ -901,4 +901,7 @@ for n in xrange(0, len(var_da)):
    
  re[day][(np.isnan(re[day])==True)] = 0.
  re_err[day][n] = sum(re[day][n,:]) / re[day][n,:].shape[0]
+ 
+np.savetxt("%srelative_errors_t.txt" % (fpath), re[1], fmt='%.2e')
+np.savetxt("%srelative_errors.txt" % (fpath), re_err[1], fmt='%.2e')
 

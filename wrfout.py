@@ -536,7 +536,7 @@ for day in xrange(1, len(psa)+1):
  var_db = [tempb[day], psb[day], ub[day][:,:,:100,:100], vb[day][:,:,:100,:100], dustb[day], swdwb[day], swupb[day], lwdwb[day], lwupb[day]]
 
  re[day] = np.zeros([len(var_da),t.shape[0]])
- re_err[day] = np.zeros(len(var_da)) 
+ re_err[day] = np.zeros(len(var_da))
  
  for n in xrange(0, len(var_da)):
   data_a = var_da[n]
@@ -553,10 +553,10 @@ for day in xrange(1, len(psa)+1):
     a_ref = data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
     re[day][n,j] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
 
-
   re[day][(np.isnan(re[day])==True)] = 0.
   re_err[day][n] = sum(re[day][n,:]) / re[day][n,:].shape[0]
 
+np.savetxt("%srelative_errors_t.txt" % (fpath), re[1], fmt='%.2e')
+np.savetxt("%srelative_errors.txt" % (fpath), re_err[1], fmt='%.2e')
 
-  
 
