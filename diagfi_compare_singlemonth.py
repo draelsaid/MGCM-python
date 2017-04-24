@@ -73,13 +73,13 @@ d_lon = np.linspace(-180,180,d_lon_s.shape[0])
 
 # Number of months in comparison (always add 1 because of Python indexing)
 Months = 2   # No. of months
-amth = 30     # Actual month 
+amth = 1     # Actual month 
 
 # This loop assigns the data in both directories to variables here. This is done for each month. The result is a dictionary of dictionaries. One dictionary containing a dictionary for every month.
 for i in xrange(1,Months):
  mgcm = "MGCM_v5-1"
- rundira = "new_ds"
- rundirb = "new_ref"
+ rundira = "a_ds8"
+ rundirb = "a_ref4"
  month = ("m%s" % (amth)) # CHANGE
  filename = "diagfi.nc"
  
@@ -380,19 +380,25 @@ for j in xrange(0,lat.shape[0],1):
 
 ## Plot settings (MUST CHANGE FROM MONTH TO MONTH)
 ######################################################################################
+
+# Save destination
+fpath = "/home/physastro/aes442/results/Dustruns/m%i/" % (amth)
+
 # Which Ls do you want to focus on?
-Ls_ee= 153.9
-Ls_e = 155.
+Ls_ee= 45.5
+Ls_e = 46.5
 l_1 = np.where(Ls - Ls_ee > 0.001)[0][0]
 l_2 = np.where(Ls - Ls_e > 0.001)[0][0]
 Ls = Ls[l_1:l_2]
 n = l_2 - l_1
 
-c = np.matrix('154. 0')#('0.5 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
-
-# Save destination
-
-fpath = "/home/physastro/aes442/results/Dustruns/m%i/" % (amth)
+## Dust storm insertion points (Ls - tstep_start - [lat,lon])
+# m26 =  45.66 - 408 - [45, -90]
+# m30 = 153.95 -  84 - [ 0,   0]
+# m33 = 244.28 -  84 - [-2,  -6]
+# m34 = 273.52 -  60 - [-45, 90]
+ 
+c = np.matrix('154. 0')#('0 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
 
 #########################################################################################
 
@@ -734,6 +740,12 @@ plt.savefig("%sfluxes_latvsLs_zonavg_tavg.png" % (fpath), bbox_inches='tight')
 #    100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165,
 #    170, 175 ;
 
+## Dust storm insertion points (Ls - tstep_start - [lat,lon])
+# m26 =  45.66 - 408 - [45, -90]
+# m30 = 153.95 -  84 - [ 0,   0]
+# m33 = 244.28 -  84 - [-2,  -6]
+# m34 = 273.52 -  60 - [-45, 90]
+
 ### Plot explaination
 # Storm starts at tstep=96, which is midnight of sol 8 relative to (0,0). However the storm is at 135W (midpoint). 
 # So 360/24 = 15deg for each hour, meaning local time at 135W is 135/15=9hrs behind (0,0) local time, so at dust storm time insertion it is 15:00 locally. 
@@ -852,13 +864,37 @@ plt.close('all')
 
 ## IMPACT CALCULATIONS
 
-# Target area 
-llat1, llat2  = -22.5, 22.5
-llon1, llon2  = -20., 20.
-lalt1, lalt2  = 0., 8.
+## Dust storm insertion points (Ls - tstep_start - [lat,lon])
 
-# Target time window
-ts1, ts2      = 96, 108
+### DS1 m1 =  3.95 - (96-120, 2 sol) - [45, -135]  (ORIGINAL DS)
+llat1, llat2  = 22.5, 67.5
+llon1, llon2  = -155., -115.
+lalt1, lalt2  = 0., 8.
+ts1, ts2      = 120, 132
+
+### DS2 m26 =  45.66 - 408 - [45, -90]
+#llat1, llat2  = 22.5, 67.5
+#llon1, llon2  = -110., -70.
+#lalt1, lalt2  = 0., 8.
+#ts1, ts2      = 420, 432
+
+### DS3 m30 = 153.95 -  84 - [ 0,   0]
+#llat1, llat2  = -22.5, 22.5
+#llon1, llon2  = -20., 20.
+#lalt1, lalt2  = 0., 8.
+#ts1, ts2      = 96, 108
+
+### DS4 m33 = 244.28 -  84 - [-2,  -6]   (EXOMARS)
+#llat1, llat2  = -22.5, 22.5
+#llon1, llon2  = -20., 20.
+#lalt1, lalt2  = 0., 8.
+#ts1, ts2      = 96, 108
+
+### DS5 m34 = 273.52 -  60 - [-45, 90]
+#llat1, llat2  = -67.5, -22.5
+#llon1, llon2  = 70., 110.
+#lalt1, lalt2  = 0., 8.
+#ts1, ts2      = 72, 84
 
 lat_1, lat_2 = np.where(lat - llat2 >= 0.001)[0][-1]+1, np.where(lat - llat1 >= 0.001)[0][-1]+1
 lon_1, lon_2 = np.where(lon - llon1 >= 0.001)[0][0]-1, np.where(lon - llon2 >= 0.001)[0][0]-1
@@ -875,7 +911,7 @@ var_da = [tempa[1], presa[1], ua[1], va[1], rhoa[1], dustqa[1], dustNa[1], fluxs
 var_db = [tempb[1], presb[1], ub[1], vb[1], rhob[1], dustqb[1], dustNb[1], fluxsurflwb[1], fluxsurfswb[1], fluxtoplwb[1], fluxtopswb[1]]
 
 re[day] = np.zeros([len(var_da), (ts2-ts1)+1])
-re_err[day] = np.zeros(len(var_da)) 
+re_err[day] = np.zeros(len(var_da))
  
 for n in xrange(0, len(var_da)):
  data_a = var_da[n]

@@ -532,8 +532,8 @@ re_err = {}
 re = {}
 
 for day in xrange(1, len(psa)+1):
- var_da = [tempa[day], psa[day], ua[day][:,:,:100,:100], va[day][:,:,:100,:100], dusta[day], swdwa[day], swupa[day], lwdwa[day], lwupa[day]]
- var_db = [tempb[day], psb[day], ub[day][:,:,:100,:100], vb[day][:,:,:100,:100], dustb[day], swdwb[day], swupb[day], lwdwb[day], lwupb[day]]
+ var_da = [dusta[day], tempa[day], psa[day], ua[day][:,:,:100,:100], va[day][:,:,:100,:100], swdwa[day], lwdwa[day], swupa[day], lwupa[day]]
+ var_db = [dustb[day], tempb[day], psb[day], ub[day][:,:,:100,:100], vb[day][:,:,:100,:100], swdwb[day], lwdwb[day], swupb[day], lwupb[day]]
 
  re[day] = np.zeros([len(var_da),t.shape[0]])
  re_err[day] = np.zeros(len(var_da))
@@ -556,7 +556,7 @@ for day in xrange(1, len(psa)+1):
   re[day][(np.isnan(re[day])==True)] = 0.
   re_err[day][n] = sum(re[day][n,:]) / re[day][n,:].shape[0]
 
-np.savetxt("%srelative_errors_t.txt" % (fpath), re[1], fmt='%.2e')
-np.savetxt("%srelative_errors.txt" % (fpath), re_err[1], fmt='%.2e')
+ np.savetxt("%srelative_errors_t_%s.txt" % (fpath, day), re[day], fmt='%.2e')
+ np.savetxt("%srelative_errors_%s.txt" % (fpath, day), re_err[day], fmt='%.2e')
 
 
