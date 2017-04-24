@@ -145,7 +145,6 @@ topg[0] = mola[0][dd2-1:dd1+1] # lat
 topg[1] = mola[1][dd3-1:dd4+1] # lon
 topg[2] = mola[2][dd2-1:dd1+1,dd3-1:dd4+1] # (lat,lon) mola map
 
-
 for i in xrange(1,len(hgt)+1):
  day = i
 # hr = 13
@@ -168,8 +167,118 @@ for i in xrange(1,len(hgt)+1):
 
 ## PLOTS
 
+## summarative plots
+ dt1 = tempa[day][:,0,:,:] - tempb[day][:,0,:,:]
+ dt2 = ptota[day][:,0,:,:] - ptotb[day][:,0,:,:]
+ dt3 = ua[day][:,0,:,:100] - ub[day][:,0,:,:100]
+
+ dt1 = dt1.sum(axis=2)/dt1.shape[2] 
+ dt2 = dt2.sum(axis=2)/dt2.shape[2]
+ dt3 = dt3.sum(axis=2)/dt3.shape[2]
+
+ dt1 = dt1[1:,:].T
+ dt2 = dt2[1:,:].T
+ dt3 = dt3[1:,:].T
+
+########################
+
 # Common settings (ticks)
  t = np.arange(0,24)
+
+## Temp
+ f, axarr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(12,12), dpi=100)
+ x = t
+ y = xlat
+
+# Labels
+ xlabel = 'Time / hours'
+ ylabel = 'Latitude / degrees'
+ cb_label = 'Temperature difference / K' 
+ f.text(0.5, 0.04, '%s' % (xlabel), fontsize=18, ha='center')
+ f.text(0.06, 0.5, '%s' % (ylabel), fontsize=18, va='center', rotation='vertical')
+
+# Time (hours)
+ major_ticksx = np.arange(0, 24, 2)
+ minor_ticksx = np.arange(0, 24, 0.5)
+
+# Latitude
+ major_ticksy = np.arange(np.floor(xlat[0]), np.ceil(xlat[-1]), 10)
+ minor_ticksy = np.arange(np.floor(xlat[0]), np.ceil(xlat[-1]), 5)
+
+ ax1 = axarr.pcolormesh(x, y, dt1, norm=MidPointNorm(midpoint=0.), cmap='RdBu_r')
+ axarr.axis('tight')
+ axarr.set_xticks(major_ticksx)
+ axarr.set_xticks(minor_ticksx, minor=True)
+ axarr.set_yticks(major_ticksy)
+ axarr.set_yticks(minor_ticksy, minor=True)
+ axarr.tick_params(axis='both', labelsize=12)
+
+ dv1 = make_axes_locatable(axarr)
+ cax1 = dv1.append_axes("right",size="5%",pad=0.05)
+ cb = f.colorbar(ax1,cax=cax1, format='%.2f', extend='both')
+ cb.set_label(cb_label, fontsize=12)
+
+ plt.axis('tight')
+ plt.savefig("%sMMM_day%i_temp_latvsls.png" % (fpath, day), bbox_inches='tight')
+ plt.close('all')
+
+## Pressure
+ f, axarr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(12,12), dpi=100)
+ x = t
+ y = xlat
+
+# Labels
+ xlabel = 'Time / hours'
+ ylabel = 'Latitude / degrees'
+ cb_label = 'Pressure difference / K' 
+ f.text(0.5, 0.04, '%s' % (xlabel), fontsize=18, ha='center')
+ f.text(0.06, 0.5, '%s' % (ylabel), fontsize=18, va='center', rotation='vertical')
+
+ ax1 = axarr.pcolormesh(x, y, dt2, norm=MidPointNorm(midpoint=0.), cmap='RdBu_r')
+ axarr.axis('tight')
+ axarr.set_xticks(major_ticksx)
+ axarr.set_xticks(minor_ticksx, minor=True)
+ axarr.set_yticks(major_ticksy)
+ axarr.set_yticks(minor_ticksy, minor=True)
+ axarr.tick_params(axis='both', labelsize=12)
+
+ dv1 = make_axes_locatable(axarr)
+ cax1 = dv1.append_axes("right",size="5%",pad=0.05)
+ cb = f.colorbar(ax1,cax=cax1, format='%.2f', extend='both')
+ cb.set_label(cb_label, fontsize=12)
+
+ plt.axis('tight')
+ plt.savefig("%sMMM_day%i_pres_latvsls.png" % (fpath, day), bbox_inches='tight')
+ plt.close('all')
+
+## Zonal wind
+ f, axarr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(12,12), dpi=100)
+ x = t
+ y = xlat
+
+# Labels
+ xlabel = 'Time / hours'
+ ylabel = 'Latitude / degrees'
+ cb_label = 'Zonal wind velocity difference / m/s' 
+ f.text(0.5, 0.04, '%s' % (xlabel), fontsize=18, ha='center')
+ f.text(0.06, 0.5, '%s' % (ylabel), fontsize=18, va='center', rotation='vertical')
+
+ ax1 = axarr.pcolormesh(x, y, dt3, norm=MidPointNorm(midpoint=0.), cmap='RdBu_r')
+ axarr.axis('tight')
+ axarr.set_xticks(major_ticksx)
+ axarr.set_xticks(minor_ticksx, minor=True)
+ axarr.set_yticks(major_ticksy)
+ axarr.set_yticks(minor_ticksy, minor=True)
+ axarr.tick_params(axis='both', labelsize=10)
+
+ dv1 = make_axes_locatable(axarr)
+ cax1 = dv1.append_axes("right",size="5%",pad=0.05)
+ cb = f.colorbar(ax1,cax=cax1, format='%.2f', extend='both')
+ cb.set_label(cb_label, fontsize=12)
+
+ plt.axis('tight')
+ plt.savefig("%sMMM_day%i_uwind_latvsls.png" % (fpath, day), bbox_inches='tight')
+ plt.close('all')
 
 # Longitude
  major_ticksx = np.arange(np.floor(xlon[0]), np.ceil(xlon[-1]), 10)
@@ -279,7 +388,6 @@ for i in xrange(1,len(hgt)+1):
 # Labels
  xlabel = 'Time / hours'
  ylabel = 'Latitude / degrees'
- cb_label = 'Radiative flux difference / W / $m^2$' 
  f.text(0.5, 0.04, '%s' % (xlabel), fontsize=18, ha='center')
  f.text(0.06, 0.5, '%s' % (ylabel), fontsize=18, va='center', rotation='vertical')
 
