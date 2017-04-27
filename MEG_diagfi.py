@@ -25,7 +25,7 @@ Ls_m = {}
 psa, psb = {}, {}
 presa, presb = {}, {} 
 tempa, tempb = {}, {} 
-ua, ub = {}, {}
+vb, ub = {}, {}
 dustqa, dustqb = {}, {}
 dustNa, dustNb = {}, {}
 rhoa, rhob = {}, {}
@@ -60,6 +60,7 @@ for i in xrange(1,Months):
  presb[i]= b.variables['pressure'][:]
  tempb[i] = b.variables['temp'][:]
  ub[i] = b.variables['u'][:]
+ vb[i] = b.variables['v'][:]
  dustqb[i] = b.variables['dustq'][:]
  dustNb[i] = b.variables['dustN'][:]
  rhob[i] = b.variables['rho'][:]
@@ -123,8 +124,7 @@ print "PLOTTING....."
 #    100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165,
 #    170, 175 ;
 
-f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
-
+#data
 lvl = 0
 latt1 = 17
 latt2 = 0
@@ -132,23 +132,46 @@ lonn = 36
 
 y = alt
 
-tmax = 270
-tmin = 120
-
-# ticks
-tmajor_ticksx = np.arange(tmin, tmax+1, 20)                                              
-tminor_ticksx = np.arange(tmin, tmax+1, 5)
-
-tmajor_ticksy = np.arange(0, max(y)+10, 10)                                              
-tminor_ticksy = np.arange(0, max(y)+10, 5)
-
 # Common axis labels
-ylabel = 'Height above Mars areoid / km'
-f.text(0.06, 0.5, '%s' % (ylabel), fontsize=14, va='center', rotation='vertical')
+cmap = mpl.cm.Accent
 
+f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(ub[j].shape[0]):
-  ax = axr.plot(ub[j][k,:,latt1,lonn], y, alpha=0.6)
+  ax = axr.plot(ub[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+  
+plt.axis([-400, 250, 0, 100])
+axr.set_xlabel('Zonal wind velocity / m/s', fontsize=12)
+axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
+plt.savefig('u_profile.png')
 
+f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
+for j in xrange(1,Months):
+ for k in xrange(vb[j].shape[0]):
+  ax = axr.plot(vb[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+  
+plt.axis([-250, 250, 0, 100])
+axr.set_xlabel('Meridional wind velocity / m/s', fontsize=12)
+axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
+plt.savefig('v_profile.png')
 
+f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
+for j in xrange(1,Months):
+ for k in xrange(presb[j].shape[0]):
+  ax = axr.plot(presb[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+  
+plt.axis([0, 750, 0, 100])
+axr.set_xlabel('Pressure / Pa', fontsize=12)
+axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
+plt.savefig('pressure_profile.png')
+
+f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
+for j in xrange(1,Months):
+ for k in xrange(rhob[j].shape[0]):
+  ax = axr.plot(rhob[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+  
+plt.axis([0, 0.02, 0, 100])
+axr.set_xlabel('Density / kg/$m^3$', fontsize=12)
+axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
+plt.savefig('density_profile.png')
 
