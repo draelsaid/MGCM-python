@@ -14,6 +14,8 @@ from matplotlib import cm,ticker
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from pylab import *
 from scipy.io import *
+from fmcd import call_mcd,julian
+
 
 # Use tex font
 #rc('text',usetex=True)
@@ -107,7 +109,120 @@ alt = np.zeros((sigma.shape[0]))
 for i in xrange(len(sigma)):
  alt[i] = -10.8*np.log(sigma[i])
 
-print "PLOTTING....."
+print "MCD PART................"
+
+# Command abbreviations for sol and Ls conversions
+ls_sol=MarsTime().ls_sol # Takes Ls and returns sol
+sol_ls=MarsTime().sol_ls # Takes sol and returns Ls
+
+## 1.3 Position (latitude, longitude) (deg) 
+latt = 0.0
+lont = 0.0
+
+lat_m = np.arange(latt-5.,latt+5.+1.,1)
+lon_m = np.arange(lont-5.,lont+5.+1.,1)
+
+## 1.4 Dust and solar scenario
+dust=np.array([1,7,8])
+
+dust_sc = {}
+for i in xrange(len(dust)):
+ if (dust[i]==1):
+  dust_sc[i] = "Climatology avg solar EUV"
+ if (dust[i]==2): 
+  dust_sc[i] = "Climatology min solar EUV"
+ if (dust[i]==3):
+  dust_sc[i] = "Climatology max solar EUV"
+ if (dust[i]==4):
+  dust_sc[i] = "Dust storm (tau=5) min EUV"
+ if (dust[i]==5):
+  dust_sc[i] = "Dust storm (tau=5) avg EUV"
+ if (dust[i]==6):
+  dust_sc[i] = "Dust storm (tau=5) max EUV"
+ if (dust[i]==7):
+  dust_sc[i] = "Dustier (warm) than clim. max EUV"
+ if (dust[i]==8):
+  dust_sc[i] = "Clearer (cold) than clim. min EUV"
+ if (dust[i]==24) or (dust[i]==25) or (dust[i]==26) or (dust[i]==27) or (dust[i]==28) or (dust[i]==29) or (dust[i]==30) or (dust[i]==31):
+  dust_sc[i] = ("MarsYear: %s" % (dust[i]))
+
+dset='/padata/alpha/users/aes442/mcd/MCD_DATA/'
+gwlength=16000
+datekey=1
+zkey=2
+alt_m=concatenate((np.arange(0,15000,50),np.arange(15000,100100,100)),axis=0)
+hrkey=1
+varmodel=1 # Var model IS NOT REQUIRED for MEGT.
+extvarkeys = np.ones(100)
+
+# (1) Initialise Ls array
+Ls_m = np.array([1.,360.])
+
+# convert to sols, create vector, then convert each sol back to Ls again (for 1sol intervals, but in Ls)
+sol_a = ls_sol(float(Ls_m[0]))
+sol_b = ls_sol(float(Ls_m[-1]))
+
+Ls_m = np.arange(sol_a,sol_b+1)
+for i in xrange(len(Ls_m)):
+ Ls_m[i] = sol_ls(Ls_m[i])
+ 
+Ls_m[0] = 1.
+Ls_m[-1]=360.
+
+# (2) Initialise local time of day array
+tod_c = np.array([1,24])
+tb=int(tod_c[0])
+te=int(tod_c[1])
+xloct = np.arange(tb,te+1,2)
+
+###################################################################
+#                             MCD Call                            #
+###################################################################
+
+# Initialise arrays
+mcd_temp    = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
+mcd_merwind = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
+mcd_zonwind = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
+mcd_dens    = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
+mcd_pres    = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
+
+# MCD loop
+seedin=0.
+for l in xrange(len(dust)):
+ m=0
+ for j in xrange(len(Ls_m)):
+  print "Starting new Ls..."
+  for k in xrange(len(xloct)):
+   for l1 in xrange(len(lat_m)):
+    for l2 in xrange(len(lon_m)):
+     for n in xrange(len(alt_m)):
+    
+      (pres, dens, temp, zonwind, merwind, \
+      meanvar, extvar, seedout, ierr) \
+      = \
+      call_mcd(zkey,alt_m[n],lon_m[l2],lat_m[l1],hrkey, \
+      datekey,Ls_m[j],xloct[k],dset,dust[l], \
+      varmodel,seedin,gwlength,extvarkeys )
+     
+      mcd_merwind[m,l,n] = merwind
+      mcd_zonwind[m,l,n] = zonwind
+      mcd_dens[m,l,n] = dens
+      mcd_temp[m,l,n] = temp
+      mcd_pres[m,l,n] = pres
+     
+     m = m + 1      # l1,l2,Ls,xloct counter
+   
+#################################################################################################
+
+mcd_temp[(mcd_temp == -999.) | (mcd_temp == 0.)] = np.NaN
+mcd_dens[(mcd_dens == -999.) | (mcd_dens == 0.)] = np.NaN
+mcd_zonwind[(mcd_zonwind == -999.) | (mcd_zonwind == 0.)] = np.NaN
+mcd_temp[(mcd_merwind == -999.) | (mcd_merwind == 0.)] = np.NaN
+mcd_pres[(mcd_pres == -999.) | (mcd_pres == 0.)] = np.NaN
+
+alt_m = alt/1000.
+
+print "MCD CALL OVER. PLOTTING....."
 
 # lat = 87.49999, 82.49999, 77.5, 72.5, 67.5, 62.5, 57.5, 52.5, 47.5, 42.5,
 #    37.5, 32.5, 27.5, 22.5, 17.5, 12.5, 7.500001, 2.500001, -2.500001,
