@@ -1,5 +1,5 @@
-# Compares NetCDF data from the Mars GCM for Full Mars Year by combining monthly output of diagfi.nc files
-# Adam El-Said 08/2016
+# Pulls out a year's worth of data from the MGCM diagfi.nc for MEG validation
+# Adam El-Said OU 04/2017
 
 import matplotlib as mpl
 #mpl.use('Agg') # removes need for X-Server (sshing graphics in linux). For qsub only.
@@ -15,42 +15,24 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from pylab import *
 from scipy.io import *
 
-# Use tex font
-#rc('text',usetex=True)
-# Change all fonts to 'Computer Modern'
-#rc('font',**{'family':'sans-serif','sans-serif':['Computer Modern']})
-
 # Initialise dictionaries - due to data size
 Ls_m = {}
-psa, psb = {}, {}
-presa, presb = {}, {} 
-tempa, tempb = {}, {} 
+psb = {}
+presbc, presb = {}, {} 
+tempb = {}
 vb, ub = {}, {}
-dustqa, dustqb = {}, {}
-dustNa, dustNb = {}, {}
-rhoa, rhob = {}, {}
-fluxsurflwa, fluxsurflwb = {}, {}
-fluxsurfswa, fluxsurfswb = {}, {}
-fluxtoplwa, fluxtoplwb = {}, {}
-fluxtopswa, fluxtopswb = {}, {}
-taua, taub = {}, {} 
-rdusta, rdustb = {}, {} 
-lw_htrta, lw_htrtb = {}, {} 
-sw_htrta, sw_htrtb = {}, {} 
+rhob = {}
+taub = {}
 
-# Number of months in comparison (always add 1 because of Python indexing)
 Months = 13
 
-# This loop assigns the data in both directories to variables here. This is done for each month. The result is a dictionary of dictionaries. One dictionary containing a dictionary for every month.
 for i in xrange(1,Months):
  mgcm = "MGCM_v5-1"
- rundirb = "T31_9_Marsyears/MY30"
+ rundirb = "T31_9_Marsyears/MY28"
  month = "m%i" % (i)
  filename = "diagfi.nc"
-
+ 
  b = netcdf.netcdf_file("/padata/alpha/users/aes442/RUNS/R-%s/%s/%s/%s" % (mgcm,rundirb,month,filename),'r')
-
-# b = netcdf.netcdf_file("/padata/mars/users/rmc429/testruns/v5dustlifting/1131_201604_v5-1hT31L25p24WDf/%s/%s" % (month, filename),'r')
 
  lat = b.variables['lat'][:]
  lon = b.variables['lon'][:]
@@ -59,18 +41,18 @@ for i in xrange(1,Months):
 # Ls_m[i] = b.variables['Ls'][:]
 
  psb[i] = b.variables['ps'][:]
-# presb[i]= b.variables['pressure'][:]
+ presb[i]= b.variables['pressure'][:]
  tempb[i] = b.variables['temp'][:]
  ub[i] = b.variables['u'][:]
  vb[i] = b.variables['v'][:]
  rhob[i] = b.variables['rho'][:]
 
 # for a run without pressure
- presb[i] = tempb[i]*0.
+ presbc[i] = tempb[i]*0.
  for k in xrange(sigma.shape[0]):
-  presb[i][:,k,:,:] = psb[i][:,:,:]*sigma[k]
+  presbc[i][:,k,:,:] = psb[i][:,:,:]*sigma[k]
  
-print ("Latitude: %i ||" % (lat.shape)), ("Longitude: %i ||" % (lon.shape)), ("Model levels: %i ||" % (sigma.shape))
+print ("Latitude: %i || Longitude: %i || Model levels: %i || Months: %i || " % (lat.shape[0], lon.shape[0], sigma.shape[0], Months-1))
 
 # Get time dimension length
 n = 0
@@ -85,22 +67,6 @@ sol_s = 0
 for i in xrange(0,Months-1):
  sol_s = sol_s + mth_s[i]
 t = np.linspace(1,sol_s,n)
-
-## Ls vector
-Ls_s = (Months-1)*30 # Number of solar longitudes
-Ls = np.zeros((n))
-
-# Method 2 grabs Ls's from model (has bugs, but can be ironed out)
-p=0
-for i in xrange(1,len(Ls_m)+1,1):
- gg = Ls_m[i]
- for j in xrange(gg.shape[0]):
-  Ls[p] = gg[j]
-  p = p + 1
-Ls = np.roll(Ls,5)
-Ls[-1] = np.ceil(Ls[-2])
-Ls[:6] = np.linspace(np.floor(Ls[5]),Ls[5],6)
-print Ls[:8], Ls[-8:]
 
 # Calculate approximate HEIGHT from sigma (km)
 alt = np.zeros((sigma.shape[0]))
@@ -121,11 +87,12 @@ print "PLOTTING....."
 #    100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150, 155, 160, 165,
 #    170, 175 ;
 
-#data
-lvl = 0
-latt1 = 17
-latt2 = 0
-lonn = 36
+## Data
+lt = 45.
+ln = 90.
+
+latt = lat[lat>lt].shape[0]
+lonn = -lon[lon>ln].shape[0]-1
 
 y = alt
 
@@ -135,40 +102,40 @@ cmap = mpl.cm.Accent
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(ub[j].shape[0]):
-  ax = axr.plot(ub[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+  ax = axr.plot(ub[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
   
-plt.axis([-400, 250, 0, 100])
+plt.axis([np.min(ub[j][:,:,latt,lonn])-10, np.ceil(np.max(ub[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Zonal wind velocity / m/s', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
-plt.savefig('u_profile.png')
+plt.savefig('MGCM_%s_%i-%i_uprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(vb[j].shape[0]):
-  ax = axr.plot(vb[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+  ax = axr.plot(vb[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
   
-plt.axis([-250, 250, 0, 100])
+plt.axis([np.min(vb[j][:,:,latt,lonn])-10, np.ceil(np.max(vb[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Meridional wind velocity / m/s', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
-plt.savefig('v_profile.png')
+plt.savefig('MGCM_%s_%i-%i_vprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(presb[j].shape[0]):
-  ax = axr.plot(presb[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+  ax = axr.plot(presb[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
   
-plt.axis([0, 750, 0, 100])
+plt.axis([0, np.ceil(np.max(presb[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Pressure / Pa', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
-plt.savefig('pressure_profile.png')
+plt.savefig('MGCM_%s_%i-%i_presprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(rhob[j].shape[0]):
-  ax = axr.plot(rhob[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+  ax = axr.plot(rhob[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
   
-plt.axis([0, 0.02, 0, 100])
+plt.axis([0, np.max(rhob[j][:,:,latt,lonn])+0.005, 0, 100])
 axr.set_xlabel('Density / kg/$m^3$', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
-plt.savefig('density_profile.png')
+plt.savefig('MGCM_%s_%i-%i_densprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
 
