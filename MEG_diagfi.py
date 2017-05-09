@@ -103,39 +103,46 @@ f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(ub[j].shape[0]):
   ax = axr.plot(ub[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
-  
-plt.axis([np.min(ub[j][:,:,latt,lonn])-10, np.ceil(np.max(ub[j][:,:,latt,lonn])/10.)*10., 0, 100])
+
+axr.set_ylim([0, 100]) 
+#plt.axis([np.min(ub[j][:,:,latt,lonn])-10, np.ceil(np.max(ub[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Zonal wind velocity / m/s', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
 plt.savefig('MGCM_%s_%i-%i_uprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
+plt.close('all')
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(vb[j].shape[0]):
   ax = axr.plot(vb[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
-  
-plt.axis([np.min(vb[j][:,:,latt,lonn])-10, np.ceil(np.max(vb[j][:,:,latt,lonn])/10.)*10., 0, 100])
+
+axr.set_ylim([0, 100])
+#plt.axis([np.min(vb[j][:,:,latt,lonn])-10, np.ceil(np.max(vb[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Meridional wind velocity / m/s', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
 plt.savefig('MGCM_%s_%i-%i_vprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
+plt.close('all')
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(presb[j].shape[0]):
   ax = axr.plot(presb[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
   
-plt.axis([0, np.ceil(np.max(presb[j][:,:,latt,lonn])/10.)*10., 0, 100])
+axr.set_ylim([0, 100])
+#plt.axis([0, np.ceil(np.max(presb[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Pressure / Pa', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
 plt.savefig('MGCM_%s_%i-%i_presprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
+plt.close('all')
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(rhob[j].shape[0]):
   ax = axr.plot(rhob[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
   
-plt.axis([0, np.max(rhob[j][:,:,latt,lonn])+0.005, 0, 100])
+axr.set_ylim([0, 100])
 axr.set_xlabel('Density / kg/$m^3$', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
 plt.savefig('MGCM_%s_%i-%i_densprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
+plt.close('all')
 
