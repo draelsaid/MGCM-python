@@ -292,29 +292,29 @@ ftsw_avg_ = np.sum(ftswb,axis=2)/ftswb.shape[2]
 ftlw_avg_ = np.sum(ftlwb,axis=2)/ftlwb.shape[2]
 
 # from 35N to 55N Lat 
-tmp_ = np.sum(np.sum(temp_avg_[:,7:11],axis=0)/n,axis=0)/4
-tmps_ = np.sum(np.sum(tsurf_avg_[:,7:11],axis=0)/n,axis=0)/4
-ps_ = np.sum(np.sum(ps_avg_[:,7:11],axis=0)/n,axis=0)/4
-pres_ = np.sum(np.sum(pres_avg_[:,7:11],axis=0)/n,axis=0)/4
-rho_ = np.sum(np.sum(rho_avg_[:,7:11],axis=0)/n,axis=0)/4
-u_ = np.sum(np.sum(np.absolute(u_avg_[:,7:11]),axis=0)/n,axis=0)/4
-fslw_ = np.sum(np.sum(fslw_avg_[:,7:11],axis=0)/n,axis=0)/4
-fssw_ = np.sum(np.sum(fssw_avg_[:,7:11],axis=0)/n,axis=0)/4
-ftlw_ = np.sum(np.sum(ftlw_avg_[:,7:11],axis=0)/n,axis=0)/4
-ftsw_ = np.sum(np.sum(ftsw_avg_[:,7:11],axis=0)/n,axis=0)/4
+#tmp_ = np.sum(np.sum(temp_avg_[:,7:11],axis=0)/n,axis=0)/4
+#tmps_ = np.sum(np.sum(tsurf_avg_[:,7:11],axis=0)/n,axis=0)/4
+#ps_ = np.sum(np.sum(ps_avg_[:,7:11],axis=0)/n,axis=0)/4
+#pres_ = np.sum(np.sum(pres_avg_[:,7:11],axis=0)/n,axis=0)/4
+#rho_ = np.sum(np.sum(rho_avg_[:,7:11],axis=0)/n,axis=0)/4
+#u_ = np.sum(np.sum(np.absolute(u_avg_[:,7:11]),axis=0)/n,axis=0)/4
+#fslw_ = np.sum(np.sum(fslw_avg_[:,7:11],axis=0)/n,axis=0)/4
+#fssw_ = np.sum(np.sum(fssw_avg_[:,7:11],axis=0)/n,axis=0)/4
+#ftlw_ = np.sum(np.sum(ftlw_avg_[:,7:11],axis=0)/n,axis=0)/4
+#ftsw_ = np.sum(np.sum(ftsw_avg_[:,7:11],axis=0)/n,axis=0)/4
 
-tmp_1 = np.sum(np.sum(temp_avg[:,7:11],axis=0)/n,axis=0)/4
-tmps_1 = np.sum(np.sum(tsurf_avg[:,7:11],axis=0)/n,axis=0)/4
-ps_1 = np.sum(np.sum(ps_avg[:,7:11],axis=0)/n,axis=0)/4
-pres_1 = np.sum(np.sum(pres_avg[:,7:11],axis=0)/n,axis=0)/4
-rho_1 = np.sum(np.sum(rho_avg[:,7:11],axis=0)/n,axis=0)/4
-u_1 = np.sum(np.sum(u_avg[:,7:11],axis=0)/n,axis=0)/4
-fslw_1 = np.sum(np.sum(fslw_avg[:,7:11],axis=0)/n,axis=0)/4
-fssw_1 = np.sum(np.sum(fssw_avg[:,7:11],axis=0)/n,axis=0)/4
-ftlw_1 = np.sum(np.sum(ftlw_avg[:,7:11],axis=0)/n,axis=0)/4
-ftsw_1 = np.sum(np.sum(ftsw_avg[:,7:11],axis=0)/n,axis=0)/4
+#tmp_1 = np.sum(np.sum(temp_avg[:,7:11],axis=0)/n,axis=0)/4
+#tmps_1 = np.sum(np.sum(tsurf_avg[:,7:11],axis=0)/n,axis=0)/4
+#ps_1 = np.sum(np.sum(ps_avg[:,7:11],axis=0)/n,axis=0)/4
+#pres_1 = np.sum(np.sum(pres_avg[:,7:11],axis=0)/n,axis=0)/4
+#rho_1 = np.sum(np.sum(rho_avg[:,7:11],axis=0)/n,axis=0)/4
+#u_1 = np.sum(np.sum(u_avg[:,7:11],axis=0)/n,axis=0)/4
+#fslw_1 = np.sum(np.sum(fslw_avg[:,7:11],axis=0)/n,axis=0)/4
+#fssw_1 = np.sum(np.sum(fssw_avg[:,7:11],axis=0)/n,axis=0)/4
+#ftlw_1 = np.sum(np.sum(ftlw_avg[:,7:11],axis=0)/n,axis=0)/4
+#ftsw_1 = np.sum(np.sum(ftsw_avg[:,7:11],axis=0)/n,axis=0)/4
 
-print "AVERAGES:  tmp: %.2f || surf tmp: %.2f || press: %.2f || surf press: %.2f || dens: %.2f || zon wind: %.2f || fluxes (inLW: %.2f, outLW: %.2f, inSW: %.2f, outSW: %.2f). " % (tmp_, tmps_, pres_, ps_, rho_, u_, fslw_, ftlw_, fssw_, ftsw_)
+#print "AVERAGES:  tmp: %.2f || surf tmp: %.2f || press: %.2f || surf press: %.2f || dens: %.2f || zon wind: #%.2f || fluxes (inLW: %.2f, outLW: %.2f, inSW: %.2f, outSW: %.2f). " % (tmp_, tmps_, pres_, ps_, rho_, u_, #fslw_, ftlw_, fssw_, ftsw_)
 #print tmp_1/tmp_, tmps_1/tmps_, pres_1/pres_, ps_1/ps_, rho_1/rho_, u_1/u_, fslw_1/fslw_, fssw_1/fssw_, ftlw_1/ftlw_, ftsw_1/ftsw_
 
 # Time moving-point average of zonal average
@@ -378,27 +378,27 @@ for j in xrange(0,lat.shape[0],1):
   lwhr_avg[:,i,j] = moving_average(lw_htrt_d[:,i,j],n=nnn)
   swhr_avg[:,i,j] = moving_average(sw_htrt_d[:,i,j],n=nnn)
 
-## Plot settings (MUST CHANGE FROM MONTH TO MONTH)
-######################################################################################
-
 # Save destination
 fpath = "/home/physastro/aes442/results/Dustruns/m%i/" % (amth)
 
+## Plot settings (MUST CHANGE FROM MONTH TO MONTH)
+######################################################################################
 # Which Ls do you want to focus on?
-Ls_ee= 45.5
-Ls_e = 46.5
+Ls_ee= 4.
+Ls_e = 5.5
 l_1 = np.where(Ls - Ls_ee > 0.001)[0][0]
 l_2 = np.where(Ls - Ls_e > 0.001)[0][0]
 Ls = Ls[l_1:l_2]
 n = l_2 - l_1
 
-## Dust storm insertion points (Ls - tstep_start - [lat,lon])
-# m26 =  45.66 - 408 - [45, -90]
-# m30 = 153.95 -  84 - [ 0,   0]
-# m33 = 244.28 -  84 - [-2,  -6]
-# m34 = 273.52 -  60 - [-45, 90]
+## Dust storm insertion points (Ls - tstep_start - centre [lat,lon])
+# m1  =   3.95 -  96 - [45, -135]
+# m26 =  45.66 - 408 - [45,  -90]
+# m30 = 153.95 -  84 - [ 0,    0]
+# m33 = 244.28 -  84 - [-2,   -6]
+# m34 = 273.52 -  60 - [-45,  90]
  
-c = np.matrix('154. 0')#('0 45; 103.1 45; 242 2.5') # Dust storm mid-points [Ls Lat]
+c = np.matrix('4. 45.') # Dust storm mid-points [Ls Lat]
 
 #########################################################################################
 
@@ -898,21 +898,22 @@ ts1, ts2      = 120, 132
 
 lat_1, lat_2 = np.where(lat - llat2 >= 0.001)[0][-1]+1, np.where(lat - llat1 >= 0.001)[0][-1]+1
 lon_1, lon_2 = np.where(lon - llon1 >= 0.001)[0][0]-1, np.where(lon - llon2 >= 0.001)[0][0]-1
-alt_1, alt_2 = np.where(alt - lalt1 >= 0.001)[0][0], np.where(alt - lalt2 >= 0.001)[0][0]
-
-alt_1 = 0
+alt_1, alt_2 = 0., np.where(alt - lalt2 >= 0.001)[0][0]
 
 # Loop to compute impact
-re_err = {}
-re = {}
-day = 1 
+re_err, avg_t = {}, {}
+re, avg = {}, {}
+day = 1
 
-var_da = [tempa[1], presa[1], ua[1], va[1], rhoa[1], dustqa[1], dustNa[1], fluxsurflwa[1], fluxsurfswa[1], fluxtoplwa[1], fluxtopswa[1]]
-var_db = [tempb[1], presb[1], ub[1], vb[1], rhob[1], dustqb[1], dustNb[1], fluxsurflwb[1], fluxsurfswb[1], fluxtoplwb[1], fluxtopswb[1]]
+var_da = [dustqa[1], dustNa[1], tempa[1], tsurfa[1], presa[1], psa[1], ua[1], va[1], rhoa[1], fluxsurflwa[1], fluxsurfswa[1], fluxtoplwa[1], fluxtopswa[1]]
+var_db = [dustqb[1], dustNb[1], tempb[1], tsurfb[1], presb[1], psb[1], ub[1], vb[1], rhob[1], fluxsurflwb[1], fluxsurfswb[1], fluxtoplwb[1], fluxtopswb[1]]
 
 re[day] = np.zeros([len(var_da), (ts2-ts1)+1])
+avg[day] = np.zeros([len(var_da), (ts2-ts1)+1])
+
 re_err[day] = np.zeros(len(var_da))
- 
+avg_t[day] = np.zeros(len(var_da))
+
 for n in xrange(0, len(var_da)):
  data_a = var_da[n]
  data_b = var_db[n]
@@ -923,21 +924,26 @@ for n in xrange(0, len(var_da)):
   for j in xrange(ts1, ts2+1):
    aa = data_a[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten() - data_b[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten()
    a_ref = data_b[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten()
+   avg[day][n,m] = sum(a_ref)/a_ref.shape[0]
    re[day][n,m] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
    m=m+1
-   
+
  else:
- 
+
   m=0
   for j in xrange(ts1, ts2+1):
    aa = data_a[j,lat_1:lat_2,lon_1:lon_2].flatten() - data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
    a_ref = data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
+   avg[day][n,m] = sum(a_ref)/a_ref.shape[0]
    re[day][n,m] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
    m=m+1
-   
+
  re[day][(np.isnan(re[day])==True)] = 0.
  re_err[day][n] = sum(re[day][n,:]) / re[day][n,:].shape[0]
- 
+ avg_t[day][n] = sum(avg[day][n,:]) / avg[day][n,:].shape[0]
+
 np.savetxt("%srelative_errors_t.txt" % (fpath), re[1], fmt='%.2e')
 np.savetxt("%srelative_errors.txt" % (fpath), re_err[1], fmt='%.2e')
+np.savetxt("%saverages.txt" % (fpath), avg[1], fmt='%.2e')
+np.savetxt("%saverages_t.txt" % (fpath), avg_t[1], fmt='%.2e')
 

@@ -636,15 +636,17 @@ alt_1, alt_2 = np.where(alt - lalt1 >= 0.001)[0][0], np.where(alt - lalt2 >= 0.0
 alt_1 = 0
 
 # Loop to compute impact
-re_err = {}
-re = {}
+re_err, avg_t = {}, {}
+re, avg = {}, {}
 
 for day in xrange(1, len(psa)+1):
  var_da = [dusta[day], tempa[day], psa[day], ua[day][:,:,:100,:100], va[day][:,:,:100,:100], swdwa[day], lwdwa[day], swupa[day], lwupa[day]]
  var_db = [dustb[day], tempb[day], psb[day], ub[day][:,:,:100,:100], vb[day][:,:,:100,:100], swdwb[day], lwdwb[day], swupb[day], lwupb[day]]
 
  re[day] = np.zeros([len(var_da),t.shape[0]])
+ avg[day] = np.zeros([len(var_da),t.shape[0]])
  re_err[day] = np.zeros(len(var_da))
+ avg_t[day] = np.zeros(len(var_da))
  
  for n in xrange(0, len(var_da)):
   data_a = var_da[n]
@@ -654,17 +656,22 @@ for day in xrange(1, len(psa)+1):
    for j in xrange(0, data_a.shape[0]):
     aa = data_a[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten() - data_b[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten()
     a_ref = data_b[j,alt_1:alt_2,lat_1:lat_2,lon_1:lon_2].flatten()
+    avg[day][n,m] = sum(a_ref)/a_ref.shape[0]
     re[day][n,j] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
+    
   else:
    for j in xrange(0, data_a.shape[0]):
     aa = data_a[j,lat_1:lat_2,lon_1:lon_2].flatten() - data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
     a_ref = data_b[j,lat_1:lat_2,lon_1:lon_2].flatten()
+    avg[day][n,m] = sum(a_ref)/a_ref.shape[0]
     re[day][n,j] = np.linalg.norm(aa) / np.linalg.norm(a_ref)
 
   re[day][(np.isnan(re[day])==True)] = 0.
   re_err[day][n] = sum(re[day][n,:]) / re[day][n,:].shape[0]
+  avg_t[day][n] = sum(avg[day][n,:]) / avg[day][n,:].shape[0]
 
  np.savetxt("%srelative_errors_t_%s.txt" % (fpath, day), re[day], fmt='%.2e')
  np.savetxt("%srelative_errors_%s.txt" % (fpath, day), re_err[day], fmt='%.2e')
-
+ np.savetxt("%saverages_%s.txt" % (fpath,day), avg[day], fmt='%.2e')
+ np.savetxt("%saverages_t_%s.txt" % (fpath,day), avg_t[day], fmt='%.2e')
 
