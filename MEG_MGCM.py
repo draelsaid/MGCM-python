@@ -9,13 +9,10 @@ import numpy as np
 import matplotlib.colors as colors
 
 from mars_time import MarsTime
-from scipy.io import *
-from matplotlib import cm,ticker
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 from pylab import *
 from scipy.io import *
 from fmcd import call_mcd,julian
-
+from matplotlib import pyplot
 
 # Use tex font
 #rc('text',usetex=True)
@@ -46,7 +43,7 @@ Months = 13
 # This loop assigns the data in both directories to variables here. This is done for each month. The result is a dictionary of dictionaries. One dictionary containing a dictionary for every month.
 for i in xrange(1,Months):
  mgcm = "MGCM_v5-1"
- rundirb = "T31_9_Marsyears/MY30"
+ rundirb = "T31_9_Marsyears/MY31"
  month = "m%i" % (i)
  filename = "diagfi.nc"
 
@@ -151,6 +148,16 @@ gwlength=16000
 datekey=1
 zkey=2
 alt_m=concatenate((np.arange(0,15000,50),np.arange(15000,100100,100)),axis=0)
+#alt_m = 1000.*np.array([  9.99499977e-01,   9.98098314e-01,   9.95562136e-01,
+#         9.90976512e-01,   9.82737064e-01,   9.68096793e-01,
+#         9.42590177e-01,   8.99628282e-01,   8.31171811e-01,
+#         7.31004179e-01,   6.00909054e-01,   4.55260634e-01,
+#         3.16687942e-01,   2.03942463e-01,   1.23567358e-01,
+#         7.16656074e-02,   4.03222963e-02,   2.21809167e-02,
+#         1.19544938e-02,   6.29041623e-03,   3.19916755e-03,
+#         1.54171500e-03,   6.77837757e-04,   2.49743753e-04,
+#         5.62741079e-05])
+
 hrkey=1
 varmodel=1 # Var model IS NOT REQUIRED for MEGT.
 extvarkeys = np.ones(100)
@@ -170,47 +177,49 @@ Ls_m[0] = 1.
 Ls_m[-1]=360.
 
 # (2) Initialise local time of day array
-tod_c = np.array([1,24])
+tod_c = np.array([0,24])
 tb=int(tod_c[0])
 te=int(tod_c[1])
-xloct = np.arange(tb,te+1,2)
+xloct = np.arange(tb,te+1,3)
 
 ###################################################################
 #                             MCD Call                            #
 ###################################################################
 
+p_dim = len(Ls_m)*len(xloct)#*len(lat_m)*len(lon_m) # profile dimension
+
 # Initialise arrays
-mcd_temp    = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
-mcd_merwind = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
-mcd_zonwind = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
-mcd_dens    = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
-mcd_pres    = np.zeros((len(Ls_m)*len(xloct)*len(lat_m)*len(lon_m),len(dust),len(alt_m)))
+mcd_temp    = np.zeros((p_dim,len(dust),len(alt_m)))
+mcd_merwind = np.zeros((p_dim,len(dust),len(alt_m)))
+mcd_zonwind = np.zeros((p_dim,len(dust),len(alt_m)))
+mcd_dens    = np.zeros((p_dim,len(dust),len(alt_m)))
+mcd_pres    = np.zeros((p_dim,len(dust),len(alt_m)))
+
+print "Data being retrieved from the MCD is of size: ", mcd_temp.shape
 
 # MCD loop
 seedin=0.
 for l in xrange(len(dust)):
  m=0
  for j in xrange(len(Ls_m)):
-  print "Starting new Ls..."
+  print "Ls: ", Ls_m[j]
   for k in xrange(len(xloct)):
-   for l1 in xrange(len(lat_m)):
-    for l2 in xrange(len(lon_m)):
-     for n in xrange(len(alt_m)):
-    
-      (pres, dens, temp, zonwind, merwind, \
-      meanvar, extvar, seedout, ierr) \
-      = \
-      call_mcd(zkey,alt_m[n],lon_m[l2],lat_m[l1],hrkey, \
-      datekey,Ls_m[j],xloct[k],dset,dust[l], \
-      varmodel,seedin,gwlength,extvarkeys )
+   for n in xrange(len(alt_m)):
      
-      mcd_merwind[m,l,n] = merwind
-      mcd_zonwind[m,l,n] = zonwind
-      mcd_dens[m,l,n] = dens
-      mcd_temp[m,l,n] = temp
-      mcd_pres[m,l,n] = pres
+    (pres, dens, temp, zonwind, merwind, \
+    meanvar, extvar, seedout, ierr) \
+    = \
+    call_mcd(zkey,alt_m[n],lont,latt,hrkey, \
+    datekey,Ls_m[j],xloct[k],dset,dust[l], \
+    varmodel,seedin,gwlength,extvarkeys )
      
-     m = m + 1      # l1,l2,Ls,xloct counter
+    mcd_merwind[m,l,n] = merwind
+    mcd_zonwind[m,l,n] = zonwind
+    mcd_dens[m,l,n] = dens
+    mcd_temp[m,l,n] = temp
+    mcd_pres[m,l,n] = pres
+     
+   m = m + 1      # Ls,xloct counter
    
 #################################################################################################
 
@@ -220,7 +229,7 @@ mcd_zonwind[(mcd_zonwind == -999.) | (mcd_zonwind == 0.)] = np.NaN
 mcd_temp[(mcd_merwind == -999.) | (mcd_merwind == 0.)] = np.NaN
 mcd_pres[(mcd_pres == -999.) | (mcd_pres == 0.)] = np.NaN
 
-alt_m = alt/1000.
+alt_m = alt_m/1000.
 
 print "MCD CALL OVER. PLOTTING....."
 
@@ -243,19 +252,37 @@ latt2 = 0
 lonn = 36
 
 y = alt
+y2 = alt_m
 
 # Common axis labels
-cmap = mpl.cm.Accent
+cmap = mpl.cm.hsv
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
-for j in xrange(1,Months):
- for k in xrange(ub[j].shape[0]):
-  ax = axr.plot(ub[j][k,:,latt1,lonn], y, alpha=0.15, linewidth=1.5, color=cmap(1))
+for j in xrange(1,2):
+ for k in xrange(50):
+  if (k==1 and i==1):
+   ax = axr.plot(ub[j][k,:,latt1,lonn], y, alpha=0.5, linewidth=1.5, color=cmap(0.5), label="MGCM - MY31")
+  else:
+   ax = axr.plot(ub[j][k,:,latt1,lonn], y, alpha=0.5, linewidth=1.5, color=cmap(0.5))
   
+for k in xrange(len(dust)):
+ for i in xrange(50):
+  if (k==1 and i==1): 
+   ax = axr.plot(mcd_zonwind[i,k,:], y2, alpha=0.3, linewidth=1.5, color=cmap(1.), label="MCD - Scenarios") 
+  else:
+   ax = axr.plot(mcd_zonwind[i,k,:], y2, alpha=0.3, linewidth=1.5, color=cmap(1.))
+  
+legend = plt.legend(loc='best', ncol=1, fontsize=9)
+for l in legend.get_lines():
+ l.set_alpha(1)
+ 
 plt.axis([-400, 250, 0, 100])
 axr.set_xlabel('Zonal wind velocity / m/s', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
 plt.savefig('u_profile.png')
+
+print "done"
+exit()
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):

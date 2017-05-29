@@ -28,7 +28,7 @@ Months = 13
 
 for i in xrange(1,Months):
  mgcm = "MGCM_v5-1"
- rundirb = "T31_9_Marsyears/MY28"
+ rundirb = "T31_9_Marsyears/MY31"
  month = "m%i" % (i)
  filename = "diagfi.nc"
  
@@ -88,27 +88,39 @@ print "PLOTTING....."
 #    170, 175 ;
 
 ## Data
-lt = 45.
-ln = 90.
+lt = 2.5
+ln = 0.
 
 latt = lat[lat>lt].shape[0]
 lonn = -lon[lon>ln].shape[0]-1
 
 y = alt
 
+# Averages
+#t_cnt = 0. # time step counter
+#ub_avg = np.zeros((ub[1].shape[1]))
+
+#for j in xrange(1,Months):
+# t_cnt = t_cnt + ub[j].shape[0]
+# ub_avg = ub_avg + np.sum(ub[j][:,:,latt,lonn],axis=0)
+
+#ub_avg = ub_avg/t_cnt
+  
 # Common axis labels
 cmap = mpl.cm.Accent
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
 for j in xrange(1,Months):
  for k in xrange(ub[j].shape[0]):
-  ax = axr.plot(ub[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
+  ax = axr.plot(ub[j][k,:,latt,lonn], y, alpha=0.2, linewidth=1.5, color=cmap(1))
+#ax = axr.plot(ub_avg, y, linewidth=3, color=cmap(1.2))
 
-axr.set_ylim([0, 100]) 
+axr.set_ylim([0, 100])
+axr.set_xlim([-370, 190])
 #plt.axis([np.min(ub[j][:,:,latt,lonn])-10, np.ceil(np.max(ub[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Zonal wind velocity / m/s', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
-plt.savefig('MGCM_%s_%i-%i_uprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
+plt.savefig('MGCM_%s_%.1f-%.1f_uprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
 plt.close('all')
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
@@ -117,10 +129,11 @@ for j in xrange(1,Months):
   ax = axr.plot(vb[j][k,:,latt,lonn], y, alpha=0.05, linewidth=1.5, color=cmap(1))
 
 axr.set_ylim([0, 100])
+axr.set_xlim([-155, 160])
 #plt.axis([np.min(vb[j][:,:,latt,lonn])-10, np.ceil(np.max(vb[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Meridional wind velocity / m/s', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
-plt.savefig('MGCM_%s_%i-%i_vprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
+plt.savefig('MGCM_%s_%.1f-%.1f_vprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
 plt.close('all')
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
@@ -132,7 +145,7 @@ axr.set_ylim([0, 100])
 #plt.axis([0, np.ceil(np.max(presb[j][:,:,latt,lonn])/10.)*10., 0, 100])
 axr.set_xlabel('Pressure / Pa', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
-plt.savefig('MGCM_%s_%i-%i_presprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
+plt.savefig('MGCM_%s_%.1f-%.1f_presprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
 plt.close('all')
 
 f,axr = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(10,12), dpi=200)
@@ -143,6 +156,6 @@ for j in xrange(1,Months):
 axr.set_ylim([0, 100])
 axr.set_xlabel('Density / kg/$m^3$', fontsize=12)
 axr.set_ylabel('Height above Mars areoid / km', fontsize=12)
-plt.savefig('MGCM_%s_%i-%i_densprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
+plt.savefig('MGCM_%s_%.1f-%.1f_densprof.png' % (rundirb[-4:], lat[latt], lon[lonn]))
 plt.close('all')
 
