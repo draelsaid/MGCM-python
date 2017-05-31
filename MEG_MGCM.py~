@@ -180,7 +180,7 @@ Ls_m[-1]=360.
 tod_c = np.array([0,24])
 tb=int(tod_c[0])
 te=int(tod_c[1])
-xloct = np.arange(tb,te+1,2)
+xloct = np.arange(tb,te+1,3)
 
 ###################################################################
 #                             MCD Call                            #
